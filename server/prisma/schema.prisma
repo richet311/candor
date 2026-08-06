@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DONOR
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  email               String        @unique
+  passwordHash        String?
+  googleId            String?       @unique
+  name                String
+  role                Role          @default(DONOR)
+  organizationId      String?
+  organization        Organization? @relation(fields: [organizationId], references: [id])
+  failedLoginAttempts Int           @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  refreshTokens RefreshToken[]
+  expenses      Expense[]
+  donations     Donation[]
+  auditLogs     AuditLog[]
+
+  @@index([organizationId])
+}
+
+model RefreshToken {
+  id                  String    @id @default(uuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash           String    @unique
+  userAgent           String?
+  ipAddress           String?
+  createdAt           DateTime  @default(now())
+  expiresAt           DateTime
+  revokedAt           DateTime?
+  replacedByTokenHash String?
+
+  @@index([userId])
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  members User[]
+  funds   Fund[]
+}
+
+model Fund {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String   @unique
+  description    String
+  category       String
+  goalCents      Int
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  expenses  Expense[]
+  donations Donation[]
+
+  @@index([organizationId])
+}
+
+model Expense {
+  id            String   @id @default(uuid())
+  fundId        String
+  fund          Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  category      String
+  description   String
+  amountCents   Int
+  createdByUserId String
+  createdBy     User     @relation(fields: [createdByUserId], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@index([fundId])
+}
+
+model Donation {
+  id                    String         @id @default(uuid())
+  fundId                String
+  fund                  Fund           @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  donorUserId           String
+  donor                 User           @relation(fields: [donorUserId], references: [id])
+  amountCents           Int
+  currency              String         @default("usd")
+  status                DonationStatus @default(PENDING)
+  stripeCheckoutSessionId String       @unique
+  stripePaymentIntentId  String?
+  createdAt             DateTime       @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  @@index([fundId])
+  @@index([donorUserId])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  actorUserId  String?
+  actor        User?    @relation(fields: [actorUserId], references: [id])
+  action       String
+  targetType   String?
+  targetId     String?
+  metadata     Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+}

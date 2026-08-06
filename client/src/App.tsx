@@ -1,0 +1,47 @@
+import { Routes, Route } from "react-router-dom";
+import { Navbar } from "./components/layout/Navbar";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LandingPage } from "./pages/LandingPage";
+import { BrowseFundsPage } from "./pages/BrowseFundsPage";
+import { FundDetailPage } from "./pages/FundDetailPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { DonorDashboardPage } from "./pages/DonorDashboardPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { DonateSuccessPage } from "./pages/DonateSuccessPage";
+import { DonateCancelledPage } from "./pages/DonateCancelledPage";
+
+export function App() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/funds" element={<BrowseFundsPage />} />
+          <Route path="/funds/:slug" element={<FundDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/donate/success" element={<DonateSuccessPage />} />
+          <Route path="/donate/cancelled" element={<DonateCancelledPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute role="DONOR">
+                <DonorDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="ADMIN">
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+    </div>
+  );
+}

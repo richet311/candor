@@ -1,0 +1,142 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { apiFetch, ApiError, setAccessToken, setUnauthorizedHandler } from "../lib/api";
+import { createLogger } from "../lib/logger";
+import { useToast } from "./ToastContext";
+import type { User } from "../lib/types";
+
+interface AuthResponse {
+  user: User;
+  accessToken: string;
+}
+
+interface AuthContextValue {
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  registerDonor: (input: { email: string; password: string; name: string }) => Promise<void>;
+  registerOrganization: (input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string }) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+const log = createLogger("auth");
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const toast = useToast();
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      log.warn("session expired, clearing local user state");
+      setUser(null);
+      setAccessToken(null);
+    });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      try {
+        const res = await fetch(`${(import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:4000/api"}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("no active session");
+        const data = (await res.json()) as AuthResponse;
+        if (cancelled) return;
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+        log.info("restored session from refresh cookie", { userId: data.user.id });
+      } catch {
+        if (!cancelled) log.debug("no active session to restore");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    void restoreSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function applySession(data: AuthResponse) {
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+  }
+
+  async function login(email: string, password: string) {
+    try {
+      const data = await apiFetch<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+      applySession(data);
+      toast.success(`Welcome back, ${data.user.name}`);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not sign in right now";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
+  async function registerDonor(input: { email: string; password: string; name: string }) {
+    try {
+      const data = await apiFetch<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(input) });
+      applySession(data);
+      toast.success(`Account created. Welcome, ${data.user.name}`);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not create your account right now";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
+  async function registerOrganization(input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string }) {
+    try {
+      const data = await apiFetch<AuthResponse>("/auth/register-organization", { method: "POST", body: JSON.stringify(input) });
+      applySession(data);
+      toast.success(`${input.orgName} is set up. Welcome, ${data.user.name}`);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not register your organization right now";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
+  async function loginWithGoogle(idToken: string) {
+    try {
+      const data = await apiFetch<AuthResponse>("/auth/google", { method: "POST", body: JSON.stringify({ idToken }) });
+      applySession(data);
+      toast.success(`Welcome, ${data.user.name}`);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Google sign-in failed";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
+  async function logout() {
+    try {
+      await apiFetch<void>("/auth/logout", { method: "POST" });
+    } catch (err) {
+      log.warn("logout request failed, clearing local state anyway", err);
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+      toast.info("Signed out");
+    }
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, registerDonor, registerOrganization, loginWithGoogle, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+  return ctx;
+}

@@ -46,7 +46,7 @@ export function LogExpenseModal({
   }
 
   return (
-    <Modal title={`Log expense — ${fundName}`} onClose={onClose}>
+    <Modal title={`Log expense for ${fundName}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Category" required placeholder="e.g. Materials" value={category} onChange={(e) => setCategory(e.target.value)} />
         <Input label="Description" required value={description} onChange={(e) => setDescription(e.target.value)} />

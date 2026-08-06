@@ -31,7 +31,7 @@ export function AuditLogTable({ entries }: { entries: AuditLogEntry[] }) {
               <td className="py-2 pr-4">
                 <Badge tone={toneFor(entry.action)}>{entry.action}</Badge>
               </td>
-              <td className="py-2 pr-4 text-[var(--color-ink-soft)]">{entry.actor?.name ?? "—"}</td>
+              <td className="py-2 pr-4 text-[var(--color-ink-soft)]">{entry.actor?.name ?? "-"}</td>
               <td className="py-2 pr-4 text-[var(--color-ink-soft)]">{new Date(entry.createdAt).toLocaleString()}</td>
             </tr>
           ))}

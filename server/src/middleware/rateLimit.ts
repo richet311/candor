@@ -1,8 +1,9 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { type Options } from "express-rate-limit";
 import type { Request, Response } from "express";
 import { createLogger } from "../lib/logger.js";
 import { recordAuditEvent } from "../services/auditService.js";
 import { AuditAction } from "../types/audit.js";
+import { env } from "../config/env.js";
 
 const log = createLogger("rate-limit");
 
@@ -18,26 +19,19 @@ function onLimitExceeded(scope: string) {
   };
 }
 
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitExceeded("auth"),
-});
+export function buildLimiter(scope: string, options: Partial<Options> & { windowMs: number; limit: number }) {
+  return rateLimit({
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: onLimitExceeded(scope),
+    // Functional/integration tests share one Express app (and therefore one
+    // in-memory limiter store) across many requests in the same run; the
+    // mechanism itself is covered in isolation by rateLimit.test.ts instead.
+    skip: () => env.NODE_ENV === "test",
+    ...options,
+  });
+}
 
-export const donationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitExceeded("donation"),
-});
-
-export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitExceeded("api"),
-});
+export const authLimiter = buildLimiter("auth", { windowMs: 15 * 60 * 1000, limit: 10 });
+export const donationLimiter = buildLimiter("donation", { windowMs: 60 * 60 * 1000, limit: 20 });
+export const apiLimiter = buildLimiter("api", { windowMs: 15 * 60 * 1000, limit: 300 });

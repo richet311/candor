@@ -10,6 +10,7 @@ import { DonorDashboardPage } from "./pages/DonorDashboardPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { DonateSuccessPage } from "./pages/DonateSuccessPage";
 import { DonateCancelledPage } from "./pages/DonateCancelledPage";
+import { OAuthCompletePage } from "./pages/OAuthCompletePage";
 
 export function App() {
   return (
@@ -24,6 +25,7 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/donate/success" element={<DonateSuccessPage />} />
           <Route path="/donate/cancelled" element={<DonateCancelledPage />} />
+          <Route path="/oauth/complete" element={<OAuthCompletePage />} />
           <Route
             path="/dashboard"
             element={

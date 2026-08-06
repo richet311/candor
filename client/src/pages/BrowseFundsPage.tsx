@@ -17,7 +17,7 @@ export function BrowseFundsPage() {
       {isLoading && <Spinner label="Loading funds" />}
 
       {!isLoading && funds.length === 0 && (
-        <EmptyState title="No active funds yet" description="Nonprofits that register with ClearFund will show up here once they open a fund." />
+        <EmptyState title="No active funds yet" description="Nonprofits that register with Candor will show up here once they open a fund." />
       )}
 
       {!isLoading && funds.length > 0 && (

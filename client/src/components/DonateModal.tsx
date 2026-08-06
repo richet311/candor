@@ -80,7 +80,7 @@ export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fun
         </div>
 
         <p className="text-xs text-[var(--color-ink-soft)]">
-          You'll be redirected to Stripe to complete payment securely. ClearFund never sees or stores your card details.
+          You'll be redirected to Stripe to complete payment securely. Candor never sees or stores your card details.
         </p>
 
         <Button onClick={handleDonate} isLoading={isSubmitting} disabled={amountCents < 100} className="w-full">

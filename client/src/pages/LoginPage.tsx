@@ -5,7 +5,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
-import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { OAuthButtons } from "../components/OAuthButtons";
 
 export function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
@@ -43,7 +43,7 @@ export function LoginPage() {
           <h1 className="text-lg font-semibold text-[var(--color-ink)]">Log in</h1>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          <GoogleSignInButton onCredential={handleGoogleCredential} />
+          <OAuthButtons onGoogleCredential={handleGoogleCredential} />
 
           <div className="flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">
             <div className="h-px flex-1 bg-[var(--color-border)]" />

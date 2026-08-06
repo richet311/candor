@@ -14,7 +14,7 @@ const STEPS = [
   },
   {
     title: "Giving is a few clicks, backed by Stripe",
-    body: "Card payments are processed by Stripe. ClearFund never touches or stores card details.",
+    body: "Card payments are processed by Stripe. Candor never touches or stores card details.",
   },
 ];
 
@@ -30,7 +30,7 @@ export function LandingPage() {
             Show donors exactly where their money went.
           </h1>
           <p className="max-w-xl text-white/80">
-            ClearFund replaces the vague progress bar with an open ledger: every donation in, every expense out,
+            Candor replaces the vague progress bar with an open ledger: every donation in, every expense out,
             organized by fund and category, visible to anyone before they give.
           </p>
           <div className="flex gap-3">

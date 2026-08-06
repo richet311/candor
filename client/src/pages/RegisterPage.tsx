@@ -5,7 +5,7 @@ import { PageContainer } from "../components/layout/PageContainer";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
-import { GoogleSignInButton } from "../components/GoogleSignInButton";
+import { OAuthButtons } from "../components/OAuthButtons";
 
 type Mode = "donor" | "organization";
 
@@ -79,7 +79,7 @@ export function RegisterPage() {
         <CardBody className="flex flex-col gap-4">
           {mode === "donor" && (
             <>
-              <GoogleSignInButton onCredential={handleGoogleCredential} />
+              <OAuthButtons onGoogleCredential={handleGoogleCredential} />
               <div className="flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">
                 <div className="h-px flex-1 bg-[var(--color-border)]" />
                 or with email

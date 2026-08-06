@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
+import { UnauthorizedError } from "./AppError.js";
 import type { Role } from "../../generated/client/index.js";
 
 export interface AccessTokenPayload {
@@ -37,4 +38,27 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload {
 
 export function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+interface OAuthStatePayload {
+  purpose: "oauth_state";
+  provider: string;
+  nonce: string;
+}
+
+export function signOAuthState(provider: string): string {
+  const payload: OAuthStatePayload = { purpose: "oauth_state", provider, nonce: crypto.randomBytes(16).toString("hex") };
+  return jwt.sign(payload, env.JWT_ACCESS_SECRET, { expiresIn: "10m" });
+}
+
+export function verifyOAuthState(state: string, expectedProvider: string): void {
+  let payload: OAuthStatePayload;
+  try {
+    payload = jwt.verify(state, env.JWT_ACCESS_SECRET) as OAuthStatePayload;
+  } catch {
+    throw new UnauthorizedError("Invalid or expired sign-in attempt, please try again");
+  }
+  if (payload.purpose !== "oauth_state" || payload.provider !== expectedProvider) {
+    throw new UnauthorizedError("Invalid or expired sign-in attempt, please try again");
+  }
 }

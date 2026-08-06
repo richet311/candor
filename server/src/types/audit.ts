@@ -4,6 +4,7 @@ export const AuditAction = {
   AUTH_LOGIN_FAILED: "auth.login_failed",
   AUTH_ACCOUNT_LOCKED: "auth.account_locked",
   AUTH_GOOGLE_LOGIN: "auth.google_login",
+  AUTH_OAUTH_LOGIN: "auth.oauth_login",
   AUTH_REFRESH: "auth.refresh",
   AUTH_REFRESH_REUSE_DETECTED: "auth.refresh_reuse_detected",
   AUTH_LOGOUT: "auth.logout",

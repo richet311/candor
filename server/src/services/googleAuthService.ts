@@ -2,7 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import { env } from "../config/env.js";
 import { UnauthorizedError } from "../utils/AppError.js";
 
-const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+const client = env.GOOGLE_CLIENT_ID ? new OAuth2Client(env.GOOGLE_CLIENT_ID) : null;
 
 export interface GoogleProfile {
   googleId: string;
@@ -12,6 +12,8 @@ export interface GoogleProfile {
 }
 
 export async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfile> {
+  if (!client) throw new UnauthorizedError("Google sign-in isn't configured");
+
   let ticket;
   try {
     ticket = await client.verifyIdToken({ idToken, audience: env.GOOGLE_CLIENT_ID });

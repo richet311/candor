@@ -1,12 +1,14 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
+import { env } from "../config/env.js";
 import { createLogger } from "../lib/logger.js";
 import { recordAuditEvent } from "./auditService.js";
 import { AuditAction } from "../types/audit.js";
-import { ConflictError, UnauthorizedError } from "../utils/AppError.js";
-import { hashToken, signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/tokens.js";
+import { ConflictError, NotFoundError, UnauthorizedError } from "../utils/AppError.js";
+import { hashToken, signAccessToken, signOAuthState, signRefreshToken, verifyOAuthState, verifyRefreshToken } from "../utils/tokens.js";
 import { verifyGoogleIdToken } from "./googleAuthService.js";
-import type { Role, User } from "../../generated/client/index.js";
+import { getProvider, listProviders, type OAuthProfile, type OAuthProviderId } from "./oauthProviders.js";
+import type { OAuthProvider as OAuthProviderEnum, Role, User } from "../../generated/client/index.js";
 
 const log = createLogger("auth");
 
@@ -39,6 +41,26 @@ async function issueTokenPair(user: User, meta: RequestMeta): Promise<TokenPair>
   });
 
   return { accessToken, refreshToken };
+}
+
+export async function findOrCreateOAuthUser(provider: OAuthProviderEnum, profile: OAuthProfile): Promise<User> {
+  const existingAccount = await prisma.oAuthAccount.findUnique({
+    where: { provider_providerAccountId: { provider, providerAccountId: profile.providerAccountId } },
+    include: { user: true },
+  });
+  if (existingAccount) return existingAccount.user;
+
+  const existingByEmail = await prisma.user.findUnique({ where: { email: profile.email } });
+  if (existingByEmail) {
+    await prisma.oAuthAccount.create({ data: { userId: existingByEmail.id, provider, providerAccountId: profile.providerAccountId } });
+    return existingByEmail;
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR" } });
+    await tx.oAuthAccount.create({ data: { userId: user.id, provider, providerAccountId: profile.providerAccountId } });
+    return user;
+  });
 }
 
 function publicUser(user: User) {
@@ -139,18 +161,61 @@ export async function loginWithPassword(input: { email: string; password: string
 
 export async function loginWithGoogle(input: { idToken: string }, meta: RequestMeta) {
   const profile = await verifyGoogleIdToken(input.idToken);
-
-  let user = await prisma.user.findUnique({ where: { googleId: profile.googleId } });
-
-  if (!user) {
-    const existingByEmail = await prisma.user.findUnique({ where: { email: profile.email } });
-    user = existingByEmail
-      ? await prisma.user.update({ where: { id: existingByEmail.id }, data: { googleId: profile.googleId } })
-      : await prisma.user.create({ data: { email: profile.email, name: profile.name, googleId: profile.googleId, role: "DONOR" } });
-  }
+  const user = await findOrCreateOAuthUser("GOOGLE", { providerAccountId: profile.googleId, email: profile.email, name: profile.name });
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_GOOGLE_LOGIN, ipAddress: meta.ipAddress });
   log.info({ userId: user.id }, "google login succeeded");
+
+  const tokens = await issueTokenPair(user, meta);
+  return { user: publicUser(user), ...tokens };
+}
+
+export function availableOAuthProviders(): Record<string, boolean> {
+  return {
+    google: Boolean(env.GOOGLE_CLIENT_ID),
+    ...Object.fromEntries(listProviders().map((p) => [p.id, p.isConfigured()])),
+  };
+}
+
+function redirectUriFor(providerId: OAuthProviderId): string {
+  return `${env.API_ORIGIN}/api/auth/oauth/${providerId}/callback`;
+}
+
+export function buildOAuthAuthorizeUrl(providerId: string): { url: string } {
+  const provider = getProvider(providerId);
+  if (!provider || !provider.isConfigured()) throw new NotFoundError("This sign-in provider isn't configured");
+
+  const state = signOAuthState(provider.id);
+  const url = provider.authorizeUrl(state, redirectUriFor(provider.id));
+  return { url };
+}
+
+const OAUTH_PROVIDER_ENUM: Record<OAuthProviderId, OAuthProviderEnum> = {
+  github: "GITHUB",
+};
+
+export async function completeOAuthCallback(
+  providerId: string,
+  code: string,
+  state: string,
+  meta: RequestMeta,
+  extra?: Record<string, string>,
+) {
+  const provider = getProvider(providerId);
+  if (!provider || !provider.isConfigured()) throw new NotFoundError("This sign-in provider isn't configured");
+
+  verifyOAuthState(state, provider.id);
+
+  const profile = await provider.exchangeCode(code, redirectUriFor(provider.id), extra);
+  const user = await findOrCreateOAuthUser(OAUTH_PROVIDER_ENUM[provider.id], profile);
+
+  await recordAuditEvent({
+    actorUserId: user.id,
+    action: AuditAction.AUTH_OAUTH_LOGIN,
+    metadata: { provider: provider.id },
+    ipAddress: meta.ipAddress,
+  });
+  log.info({ userId: user.id, provider: provider.id }, "oauth login succeeded");
 
   const tokens = await issueTokenPair(user, meta);
   return { user: publicUser(user), ...tokens };

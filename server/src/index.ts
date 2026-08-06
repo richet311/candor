@@ -6,7 +6,7 @@ import { prisma } from "./lib/prisma.js";
 const app = createApp();
 
 const server = app.listen(env.PORT, () => {
-  logger.info({ port: env.PORT, env: env.NODE_ENV }, "clearfund api listening");
+  logger.info({ port: env.PORT, env: env.NODE_ENV }, "candor api listening");
 });
 
 async function shutdown(signal: string) {

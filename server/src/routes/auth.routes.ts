@@ -1,13 +1,16 @@
 import { Router } from "express";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validateBody } from "../middleware/validate.js";
 import { authLimiter } from "../middleware/rateLimit.js";
 import { requireAuth } from "../middleware/auth.js";
 import { env, isProd } from "../config/env.js";
-import { UnauthorizedError } from "../utils/AppError.js";
+import { AppError, UnauthorizedError } from "../utils/AppError.js";
+import { createLogger } from "../lib/logger.js";
 import * as authService from "../services/authService.js";
+
+const log = createLogger("oauth-routes");
 
 const router = Router();
 
@@ -123,6 +126,69 @@ router.get(
   requireAuth,
   asyncHandler(async (req, res) => {
     res.json({ user: req.user });
+  }),
+);
+
+router.get("/oauth/providers", (_req, res) => {
+  res.json({ providers: authService.availableOAuthProviders() });
+});
+
+function redirectToClientWithError(res: Response, message: string) {
+  res.redirect(`${env.CLIENT_ORIGIN}/oauth/complete?error=${encodeURIComponent(message)}`);
+}
+
+router.get(
+  "/oauth/:provider/start",
+  authLimiter,
+  (req, res) => {
+    try {
+      const { url } = authService.buildOAuthAuthorizeUrl(req.params.provider);
+      res.redirect(url);
+    } catch (err) {
+      log.warn({ provider: req.params.provider, err }, "failed to start oauth flow");
+      redirectToClientWithError(res, err instanceof AppError ? err.message : "Could not start sign-in");
+    }
+  },
+);
+
+async function finishOAuthCallback(
+  provider: string,
+  code: string | undefined,
+  state: string | undefined,
+  extra: Record<string, string> | undefined,
+  req: Request,
+  res: Response,
+) {
+  if (!code || !state) {
+    redirectToClientWithError(res, "Sign-in was cancelled or incomplete");
+    return;
+  }
+
+  try {
+    const result = await authService.completeOAuthCallback(
+      provider,
+      code,
+      state,
+      { ipAddress: req.ip, userAgent: req.headers["user-agent"] },
+      extra,
+    );
+    setRefreshCookie(res, result.refreshToken);
+    res.redirect(`${env.CLIENT_ORIGIN}/oauth/complete`);
+  } catch (err) {
+    log.warn({ provider, err }, "oauth callback failed");
+    redirectToClientWithError(res, err instanceof AppError ? err.message : "Sign-in failed");
+  }
+}
+
+router.get(
+  "/oauth/:provider/callback",
+  asyncHandler(async (req, res) => {
+    const { code, state, error } = req.query as Record<string, string | undefined>;
+    if (error) {
+      redirectToClientWithError(res, "Sign-in was cancelled");
+      return;
+    }
+    await finishOAuthCallback(req.params.provider, code, state, undefined, req, res);
   }),
 );
 

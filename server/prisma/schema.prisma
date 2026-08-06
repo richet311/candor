@@ -19,11 +19,15 @@ enum DonationStatus {
   FAILED
 }
 
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+}
+
 model User {
   id                  String        @id @default(uuid())
   email               String        @unique
   passwordHash        String?
-  googleId            String?       @unique
   name                String
   role                Role          @default(DONOR)
   organizationId      String?
@@ -34,11 +38,24 @@ model User {
   updatedAt           DateTime      @updatedAt
 
   refreshTokens RefreshToken[]
+  oauthAccounts OAuthAccount[]
   expenses      Expense[]
   donations     Donation[]
   auditLogs     AuditLog[]
 
   @@index([organizationId])
+}
+
+model OAuthAccount {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          OAuthProvider
+  providerAccountId String
+  createdAt         DateTime      @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model RefreshToken {

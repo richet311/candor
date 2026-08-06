@@ -8,7 +8,7 @@ const consoleMethod: Record<LogLevel, (...args: unknown[]) => void> = {
 };
 
 function emit(level: LogLevel, scope: string, message: string, data?: unknown) {
-  const prefix = `[clearfund:${scope}]`;
+  const prefix = `[candor:${scope}]`;
   if (data !== undefined) {
     consoleMethod[level](prefix, message, data);
   } else {

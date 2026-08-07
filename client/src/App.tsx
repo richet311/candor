@@ -5,6 +5,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { BrowseFundsPage } from "./pages/BrowseFundsPage";
 import { FundDetailPage } from "./pages/FundDetailPage";
+import { OrganizationsPage } from "./pages/OrganizationsPage";
+import { OrganizationDetailPage } from "./pages/OrganizationDetailPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DonorDashboardPage } from "./pages/DonorDashboardPage";
@@ -25,6 +27,8 @@ export function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/funds" element={<BrowseFundsPage />} />
           <Route path="/funds/:slug" element={<FundDetailPage />} />
+          <Route path="/organizations" element={<OrganizationsPage />} />
+          <Route path="/organizations/:slug" element={<OrganizationDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/donate/success" element={<DonateSuccessPage />} />

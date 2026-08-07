@@ -76,6 +76,36 @@ export interface RecentDonation {
   fund: { name: string; slug: string; organizationName: string };
 }
 
+export interface OrganizationSummary {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  websiteUrl: string | null;
+  verified: boolean;
+  sourceUrl: string | null;
+  fundCount: number;
+  raisedCents: number;
+  causes: string[];
+}
+
+export interface OrganizationDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  websiteUrl: string | null;
+  verified: boolean;
+  sourceUrl: string | null;
+  createdAt: string;
+  raisedCents: number;
+  funds: Fund[];
+}
+
 export interface AuditLogEntry {
   id: string;
   action: string;

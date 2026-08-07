@@ -27,6 +27,9 @@ export function Navbar() {
           <Link to="/funds" className={NAV_LINK}>
             Browse funds
           </Link>
+          <Link to="/organizations" className={NAV_LINK}>
+            Nonprofits
+          </Link>
 
           {!user && (
             <>

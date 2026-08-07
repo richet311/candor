@@ -19,6 +19,9 @@ export function Footer() {
           <Link to="/funds" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
             Browse funds
           </Link>
+          <Link to="/organizations" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+            Nonprofits
+          </Link>
           <Link to="/register" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
             Register a nonprofit
           </Link>

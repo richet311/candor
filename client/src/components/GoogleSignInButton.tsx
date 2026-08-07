@@ -29,8 +29,9 @@ export function GoogleSignInButton({ onCredential }: { onCredential: (idToken: s
     window.google.accounts.id.renderButton(containerRef.current, {
       theme: "outline",
       size: "large",
-      width: 320,
+      width: containerRef.current.offsetWidth,
       text: "continue_with",
+      shape: "pill",
     });
   }, [onCredential]);
 

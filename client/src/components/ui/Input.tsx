@@ -16,7 +16,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({ label, error, i
       <input
         id={inputId}
         ref={ref}
-        className={`rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--color-navy)] ${
+        className={`rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-navy)]/10 ${
           error ? "border-[var(--color-danger)]" : "border-[var(--color-border)]"
         } ${className}`}
         aria-invalid={Boolean(error)}

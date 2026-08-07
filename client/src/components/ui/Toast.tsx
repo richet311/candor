@@ -26,7 +26,7 @@ export function ToastViewport({ toasts, onDismiss }: ToastViewportProps) {
         <div
           key={toast.id}
           role="status"
-          className={`flex items-start gap-3 rounded-md bg-[var(--color-paper-raised)] px-4 py-3 shadow-lg ${STYLES[toast.type]}`}
+          className={`flex items-start gap-3 rounded-2xl bg-[var(--color-paper-raised)] px-4 py-3.5 shadow-xl ${STYLES[toast.type]}`}
         >
           <span className="mt-0.5 text-sm font-semibold">{ICON[toast.type]}</span>
           <p className="flex-1 text-sm text-[var(--color-ink)]">{toast.message}</p>

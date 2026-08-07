@@ -39,8 +39,8 @@ export function LoginPage() {
   return (
     <PageContainer className="max-w-md">
       <Card>
-        <CardHeader>
-          <h1 className="text-lg font-semibold text-[var(--color-ink)]">Log in</h1>
+        <CardHeader className="text-center">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--color-ink)]">Log in</h1>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
           <OAuthButtons onGoogleCredential={handleGoogleCredential} />

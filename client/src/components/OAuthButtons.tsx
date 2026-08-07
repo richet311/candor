@@ -17,7 +17,7 @@ export function OAuthButtons({ onGoogleCredential }: { onGoogleCredential: (idTo
         <a
           key={p.id}
           href={`${API_BASE}/auth/oauth/${p.id}/start`}
-          className="flex w-full items-center justify-center rounded-md border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] hover:bg-black/5"
+          className="flex w-full items-center justify-center rounded-full border border-[var(--color-border)] px-5 py-2.5 text-sm font-semibold text-[var(--color-ink)] transition-colors hover:bg-black/5"
         >
           {p.label}
         </a>

@@ -14,6 +14,7 @@ interface GoogleButtonOptions {
   size?: "large" | "medium" | "small";
   width?: number;
   text?: "signin_with" | "signup_with" | "continue_with";
+  shape?: "rectangular" | "pill" | "circle" | "square";
 }
 
 declare global {

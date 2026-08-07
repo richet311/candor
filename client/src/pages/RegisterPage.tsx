@@ -56,8 +56,8 @@ export function RegisterPage() {
   return (
     <PageContainer className="max-w-md">
       <Card>
-        <CardHeader className="flex flex-col gap-3">
-          <h1 className="text-lg font-semibold text-[var(--color-ink)]">Create an account</h1>
+        <CardHeader className="flex flex-col items-center gap-3 text-center">
+          <h1 className="text-xl font-bold tracking-tight text-[var(--color-ink)]">Create an account</h1>
           <div className="flex gap-2 text-sm">
             <button
               type="button"
@@ -143,6 +143,18 @@ export function RegisterPage() {
             <Link to="/login" className="font-medium text-[var(--color-navy)]">
               Log in
             </Link>
+          </p>
+
+          <p className="text-center text-xs text-[var(--color-ink-soft)]">
+            By creating an account, you agree to Candor's{" "}
+            <Link to="/terms" className="underline hover:text-[var(--color-ink)]">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="underline hover:text-[var(--color-ink)]">
+              Privacy Policy
+            </Link>
+            .
           </p>
         </CardBody>
       </Card>

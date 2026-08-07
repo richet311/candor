@@ -10,7 +10,7 @@ export function BrowseFundsPage() {
   return (
     <PageContainer className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-[var(--color-ink)]">Active funds</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Active funds</h1>
         <p className="text-sm text-[var(--color-ink-soft)]">Every fund below has a public, itemized ledger.</p>
       </div>
 
@@ -21,7 +21,7 @@ export function BrowseFundsPage() {
       )}
 
       {!isLoading && funds.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {funds.map((fund) => (
             <FundCard key={fund.id} fund={fund} />
           ))}

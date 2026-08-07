@@ -1,12 +1,19 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { uploadImage, ApiError } from "../../lib/api";
 import { useToast } from "../../context/ToastContext";
+import { ImageCropModal } from "./ImageCropModal";
 
 const SHAPE_CLASSES = {
   circle: "h-20 w-20 rounded-full",
   banner: "aspect-[16/6] w-full rounded-xl",
   card: "aspect-[16/10] w-full rounded-xl",
 } as const;
+
+const SHAPE_ASPECT: Record<keyof typeof SHAPE_CLASSES, number> = {
+  circle: 1,
+  banner: 16 / 6,
+  card: 16 / 10,
+};
 
 export function ImageUploadField({
   label,
@@ -23,17 +30,22 @@ export function ImageUploadField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const toast = useToast();
   const isCompact = shape === "circle";
 
-  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    setPendingFile(file);
+  }
 
+  async function handleCropConfirm(cropped: File) {
+    setPendingFile(null);
     setIsUploading(true);
     try {
-      const { url } = await uploadImage(file);
+      const { url } = await uploadImage(cropped);
       onChange(url);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Could not upload image";
@@ -89,6 +101,15 @@ export function ImageUploadField({
         className="hidden"
         onChange={handleFileChange}
       />
+      {pendingFile && (
+        <ImageCropModal
+          file={pendingFile}
+          aspect={SHAPE_ASPECT[shape]}
+          round={isCompact}
+          onCancel={() => setPendingFile(null)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 }

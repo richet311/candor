@@ -52,6 +52,10 @@ export function CreateFundModal({ onClose, onCreated }: { onClose: () => void; o
         <div className="flex flex-col gap-1.5">
           <label htmlFor="fund-description" className="text-sm font-medium text-[var(--color-ink)]">
             Description
+            <span className="text-[var(--color-danger)]" aria-hidden="true">
+              {" "}
+              *
+            </span>
           </label>
           <textarea
             id="fund-description"

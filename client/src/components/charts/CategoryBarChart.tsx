@@ -12,7 +12,7 @@ export function CategoryBarChart({ data }: { data: ExpenseCategoryTotal[] }) {
         <XAxis type="number" tickFormatter={(v: number) => formatCents(v)} stroke="var(--color-ink-soft)" fontSize={12} />
         <YAxis type="category" dataKey="category" width={110} stroke="var(--color-ink-soft)" fontSize={12} />
         <Tooltip
-          formatter={(value) => formatCents(Number(value))}
+          formatter={(value) => [formatCents(Number(value)), "Amount"]}
           contentStyle={{ borderRadius: 8, borderColor: "var(--color-border)", fontSize: 13 }}
         />
         <Bar dataKey="amountCents" fill="var(--color-navy)" radius={[0, 4, 4, 0]} maxBarSize={28} />

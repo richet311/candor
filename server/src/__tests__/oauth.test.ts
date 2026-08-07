@@ -37,8 +37,9 @@ describe("findOrCreateOAuthUser", () => {
   const profile = { providerAccountId: "gh-123", email: "dana@example.com", name: "Dana Donor" };
 
   it("creates a new user and links the provider account", async () => {
-    const user = await findOrCreateOAuthUser("GITHUB", profile);
+    const { user, event } = await findOrCreateOAuthUser("GITHUB", profile);
     expect(user.email).toBe(profile.email);
+    expect(event).toBe("created");
 
     const account = await prisma.oAuthAccount.findUnique({
       where: { provider_providerAccountId: { provider: "GITHUB", providerAccountId: profile.providerAccountId } },
@@ -49,18 +50,20 @@ describe("findOrCreateOAuthUser", () => {
   it("links to an existing user with the same email instead of creating a duplicate", async () => {
     const existing = await prisma.user.create({ data: { email: profile.email, name: "Existing Dana", role: "DONOR" } });
 
-    const linked = await findOrCreateOAuthUser("GITHUB", profile);
+    const { user: linked, event } = await findOrCreateOAuthUser("GITHUB", profile);
 
     expect(linked.id).toBe(existing.id);
+    expect(event).toBe("linked");
     const totalUsers = await prisma.user.count({ where: { email: profile.email } });
     expect(totalUsers).toBe(1);
   });
 
   it("returns the same user on repeated sign-ins without creating duplicate accounts", async () => {
-    const first = await findOrCreateOAuthUser("GITHUB", profile);
-    const second = await findOrCreateOAuthUser("GITHUB", profile);
+    const { user: first } = await findOrCreateOAuthUser("GITHUB", profile);
+    const { user: second, event } = await findOrCreateOAuthUser("GITHUB", profile);
 
     expect(second.id).toBe(first.id);
+    expect(event).toBe("returning");
     const accountCount = await prisma.oAuthAccount.count({
       where: { provider: "GITHUB", providerAccountId: profile.providerAccountId },
     });

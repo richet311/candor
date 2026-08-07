@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { Spinner } from "../components/ui/Spinner";
+import { oauthWelcomeMessage } from "../lib/oauthMessages";
+import type { OAuthEvent } from "../lib/types";
 
 export function OAuthCompletePage() {
   const [searchParams] = useSearchParams();
@@ -10,6 +12,7 @@ export function OAuthCompletePage() {
   const navigate = useNavigate();
   const toast = useToast();
   const error = searchParams.get("error");
+  const event = searchParams.get("event") as OAuthEvent | null;
 
   useEffect(() => {
     if (error) {
@@ -20,7 +23,7 @@ export function OAuthCompletePage() {
 
     if (!isLoading) {
       if (user) {
-        toast.success(`Welcome, ${user.name}`);
+        toast.success(oauthWelcomeMessage(event ?? undefined, user.name));
         navigate("/", { replace: true });
       } else {
         toast.error("Sign-in did not complete. Please try again.");
@@ -29,7 +32,7 @@ export function OAuthCompletePage() {
     }
     // toast intentionally omitted: its wrapper identity changes every render,
     // but it always dispatches through the same stable ToastContext.push
-  }, [error, isLoading, user, navigate]);
+  }, [error, isLoading, user, event, navigate]);
 
   return <Spinner label="Finishing sign-in..." />;
 }

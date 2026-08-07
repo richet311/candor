@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
@@ -7,10 +7,17 @@ import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { OAuthButtons } from "../components/OAuthButtons";
 
+interface LoginLocationState {
+  email?: string;
+  notice?: string;
+}
+
 export function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  const locationState = location.state as LoginLocationState | null;
+  const [email, setEmail] = useState(locationState?.email ?? "");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,6 +50,10 @@ export function LoginPage() {
           <h1 className="text-xl font-bold tracking-tight text-[var(--color-ink)]">Log in</h1>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
+          {locationState?.notice && (
+            <p className="rounded-xl bg-[var(--color-accent)]/10 px-3.5 py-2.5 text-sm text-[var(--color-ink)]">{locationState.notice}</p>
+          )}
+
           <OAuthButtons onGoogleCredential={handleGoogleCredential} />
 
           <div className="flex items-center gap-3 text-xs text-[var(--color-ink-soft)]">

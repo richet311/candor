@@ -105,7 +105,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const result = await authService.loginWithGoogle(req.body, { ipAddress: req.ip, userAgent: req.headers["user-agent"] });
     setRefreshCookie(res, result.refreshToken);
-    res.json({ user: result.user, accessToken: result.accessToken });
+    res.json({ user: result.user, accessToken: result.accessToken, event: result.event });
   }),
 );
 
@@ -221,7 +221,7 @@ async function finishOAuthCallback(
       extra,
     );
     setRefreshCookie(res, result.refreshToken);
-    res.redirect(`${env.CLIENT_ORIGIN}/oauth/complete`);
+    res.redirect(`${env.CLIENT_ORIGIN}/oauth/complete?event=${result.event}`);
   } catch (err) {
     log.warn({ provider, err }, "oauth callback failed");
     redirectToClientWithError(res, err instanceof AppError ? err.message : "Sign-in failed");

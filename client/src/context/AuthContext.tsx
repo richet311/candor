@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { apiFetch, ApiError, setAccessToken, setUnauthorizedHandler } from "../lib/api";
 import { createLogger } from "../lib/logger";
+import { oauthWelcomeMessage } from "../lib/oauthMessages";
 import { useToast } from "./ToastContext";
-import type { User } from "../lib/types";
+import type { OAuthEvent, User } from "../lib/types";
 
 interface AuthResponse {
   user: User;
   accessToken: string;
+  event?: OAuthEvent;
 }
 
 interface AuthContextValue {
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<AuthResponse>("/auth/google", { method: "POST", body: JSON.stringify({ idToken }) });
       applySession(data);
-      toast.success(`Welcome, ${data.user.name}`);
+      toast.success(oauthWelcomeMessage(data.event, data.user.name));
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Google sign-in failed";
       toast.error(message, err);

@@ -53,25 +53,34 @@ async function issueTokenPair(user: User, meta: RequestMeta): Promise<TokenPair>
   return { accessToken, refreshToken };
 }
 
-export async function findOrCreateOAuthUser(provider: OAuthProviderEnum, profile: OAuthProfile): Promise<User> {
+export type OAuthEvent = "returning" | "linked" | "created";
+
+export async function findOrCreateOAuthUser(
+  provider: OAuthProviderEnum,
+  profile: OAuthProfile,
+): Promise<{ user: User; event: OAuthEvent }> {
   const existingAccount = await prisma.oAuthAccount.findUnique({
     where: { provider_providerAccountId: { provider, providerAccountId: profile.providerAccountId } },
     include: { user: true },
   });
-  if (existingAccount) return existingAccount.user;
+  if (existingAccount) return { user: existingAccount.user, event: "returning" };
 
+  // Same email, no OAuthAccount for this provider yet: attach this provider to the existing
+  // account rather than reject it as a duplicate, so a user who signed up with a password (or a
+  // different provider) doesn't end up with two disconnected accounts for one email address.
   const existingByEmail = await prisma.user.findUnique({ where: { email: profile.email } });
   if (existingByEmail) {
     await prisma.oAuthAccount.create({ data: { userId: existingByEmail.id, provider, providerAccountId: profile.providerAccountId } });
-    return existingByEmail;
+    return { user: existingByEmail, event: "linked" };
   }
 
-  return prisma.$transaction(async (tx) => {
+  const user = await prisma.$transaction(async (tx) => {
     // The OAuth provider already verified this email address, so there's nothing to confirm.
-    const user = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR", emailVerified: true } });
-    await tx.oAuthAccount.create({ data: { userId: user.id, provider, providerAccountId: profile.providerAccountId } });
-    return user;
+    const created = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR", emailVerified: true } });
+    await tx.oAuthAccount.create({ data: { userId: created.id, provider, providerAccountId: profile.providerAccountId } });
+    return created;
   });
+  return { user, event: "created" };
 }
 
 function publicUser(user: User) {
@@ -201,13 +210,13 @@ export async function loginWithPassword(input: { email: string; password: string
 
 export async function loginWithGoogle(input: { idToken: string }, meta: RequestMeta) {
   const profile = await verifyGoogleIdToken(input.idToken);
-  const user = await findOrCreateOAuthUser("GOOGLE", { providerAccountId: profile.googleId, email: profile.email, name: profile.name });
+  const { user, event } = await findOrCreateOAuthUser("GOOGLE", { providerAccountId: profile.googleId, email: profile.email, name: profile.name });
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_GOOGLE_LOGIN, ipAddress: meta.ipAddress });
   log.info({ userId: user.id }, "google login succeeded");
 
   const tokens = await issueTokenPair(user, meta);
-  return { user: publicUser(user), ...tokens };
+  return { user: publicUser(user), event, ...tokens };
 }
 
 export function availableOAuthProviders(): Record<string, boolean> {
@@ -247,7 +256,7 @@ export async function completeOAuthCallback(
   verifyOAuthState(state, provider.id);
 
   const profile = await provider.exchangeCode(code, redirectUriFor(provider.id), extra);
-  const user = await findOrCreateOAuthUser(OAUTH_PROVIDER_ENUM[provider.id], profile);
+  const { user, event } = await findOrCreateOAuthUser(OAUTH_PROVIDER_ENUM[provider.id], profile);
 
   await recordAuditEvent({
     actorUserId: user.id,
@@ -258,7 +267,7 @@ export async function completeOAuthCallback(
   log.info({ userId: user.id, provider: provider.id }, "oauth login succeeded");
 
   const tokens = await issueTokenPair(user, meta);
-  return { user: publicUser(user), ...tokens };
+  return { user: publicUser(user), event, ...tokens };
 }
 
 export async function refreshSession(refreshToken: string, meta: RequestMeta) {

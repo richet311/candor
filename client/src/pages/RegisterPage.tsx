@@ -6,6 +6,7 @@ import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import { OAuthButtons } from "../components/OAuthButtons";
+import { ApiError } from "../lib/api";
 
 type Mode = "donor" | "organization";
 
@@ -24,8 +25,11 @@ export function RegisterPage() {
     try {
       await registerDonor(donorForm);
       navigate("/");
-    } catch {
+    } catch (err) {
       // toast already shown by AuthContext
+      if (err instanceof ApiError && err.status === 409) {
+        navigate("/login", { state: { email: donorForm.email, notice: "An account already exists with this email. Log in below." } });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -37,8 +41,11 @@ export function RegisterPage() {
     try {
       await registerOrganization(orgForm);
       navigate("/admin");
-    } catch {
+    } catch (err) {
       // toast already shown by AuthContext
+      if (err instanceof ApiError && err.status === 409) {
+        navigate("/login", { state: { email: orgForm.adminEmail, notice: "An account already exists with this email. Log in below." } });
+      }
     } finally {
       setIsSubmitting(false);
     }

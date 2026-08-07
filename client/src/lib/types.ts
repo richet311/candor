@@ -1,4 +1,5 @@
 export type Role = "ADMIN" | "DONOR" | "OWNER";
+export type OAuthEvent = "returning" | "linked" | "created";
 
 export interface User {
   id: string;

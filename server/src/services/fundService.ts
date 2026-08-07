@@ -5,7 +5,7 @@ export async function listPublicFunds() {
   const funds = await prisma.fund.findMany({
     where: { isActive: true },
     include: {
-      organization: { select: { name: true, slug: true } },
+      organization: { select: { name: true, slug: true, verified: true, sourceUrl: true, logoUrl: true, bannerUrl: true, websiteUrl: true } },
       donations: { where: { status: "SUCCEEDED" }, select: { amountCents: true } },
       expenses: { select: { amountCents: true } },
     },
@@ -19,6 +19,7 @@ export async function listPublicFunds() {
     description: fund.description,
     category: fund.category,
     goalCents: fund.goalCents,
+    coverImageUrl: fund.coverImageUrl,
     organization: fund.organization,
     raisedCents: fund.donations.reduce((sum, d) => sum + d.amountCents, 0),
     spentCents: fund.expenses.reduce((sum, e) => sum + e.amountCents, 0),
@@ -29,8 +30,12 @@ export async function getFundDetail(slug: string) {
   const fund = await prisma.fund.findUnique({
     where: { slug },
     include: {
-      organization: { select: { name: true, slug: true } },
-      donations: { where: { status: "SUCCEEDED" }, orderBy: { createdAt: "desc" }, select: { id: true, amountCents: true, createdAt: true } },
+      organization: { select: { name: true, slug: true, verified: true, sourceUrl: true, logoUrl: true, bannerUrl: true, websiteUrl: true } },
+      donations: {
+        where: { status: "SUCCEEDED" },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, amountCents: true, createdAt: true, isAnonymous: true, donor: { select: { name: true, isDemoDonor: true } } },
+      },
       expenses: { orderBy: { createdAt: "desc" }, select: { id: true, category: true, description: true, amountCents: true, createdAt: true } },
     },
   });
@@ -46,7 +51,15 @@ export async function getFundDetail(slug: string) {
   }
 
   const activity = [
-    ...fund.donations.map((d) => ({ type: "donation" as const, id: d.id, amountCents: d.amountCents, createdAt: d.createdAt })),
+    ...fund.donations.map((d) => ({
+      type: "donation" as const,
+      id: d.id,
+      amountCents: d.amountCents,
+      createdAt: d.createdAt,
+      isAnonymous: d.isAnonymous,
+      // Simulated/demo donations never reveal a "real" name, only a genuine donor's own name is shown.
+      donorName: d.isAnonymous || d.donor.isDemoDonor ? null : d.donor.name,
+    })),
     ...fund.expenses.map((e) => ({ type: "expense" as const, id: e.id, amountCents: e.amountCents, category: e.category, description: e.description, createdAt: e.createdAt })),
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
@@ -57,6 +70,7 @@ export async function getFundDetail(slug: string) {
     description: fund.description,
     category: fund.category,
     goalCents: fund.goalCents,
+    coverImageUrl: fund.coverImageUrl,
     organization: fund.organization,
     raisedCents,
     spentCents,
@@ -82,6 +96,7 @@ export async function listOrgFunds(organizationId: string) {
     description: fund.description,
     category: fund.category,
     goalCents: fund.goalCents,
+    coverImageUrl: fund.coverImageUrl,
     isActive: fund.isActive,
     raisedCents: fund.donations.reduce((sum, d) => sum + d.amountCents, 0),
     spentCents: fund.expenses.reduce((sum, e) => sum + e.amountCents, 0),

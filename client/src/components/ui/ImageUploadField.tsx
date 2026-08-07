@@ -24,6 +24,7 @@ export function ImageUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const toast = useToast();
+  const isCompact = shape === "circle";
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -45,9 +46,9 @@ export function ImageUploadField({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-[var(--color-ink)]">{label}</span>
-      <div className="flex items-center gap-3">
+      <div className={isCompact ? "flex items-center gap-3" : "flex flex-col gap-3"}>
         <div
-          className={`relative flex shrink-0 items-center justify-center overflow-hidden border border-dashed border-[var(--color-border)] bg-black/[0.03] ${SHAPE_CLASSES[shape]}`}
+          className={`relative flex items-center justify-center overflow-hidden border border-dashed border-[var(--color-border)] bg-black/[0.03] ${isCompact ? "shrink-0" : ""} ${SHAPE_CLASSES[shape]}`}
         >
           {value ? (
             <img src={value} alt="" className="h-full w-full object-cover" />
@@ -60,7 +61,7 @@ export function ImageUploadField({
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2">
+        <div className={isCompact ? "flex flex-col gap-2" : "flex items-center gap-2"}>
           <button
             type="button"
             onClick={() => inputRef.current?.click()}

@@ -43,8 +43,11 @@ const STEPS = [
 ];
 
 export function LandingPage() {
-  const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading } = useFunds();
-  const previewFund = funds[0];
+  const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading } = useFunds({ limit: 48 });
+  // Funds are returned newest-first, so the literal first fund is usually a freshly seeded one
+  // with nothing raised yet. Feature whichever real fund has raised the most instead, so the
+  // hero card shows an honest, flattering example rather than a $0 placeholder.
+  const previewFund = [...funds].sort((a, b) => b.raisedCents - a.raisedCents)[0];
   const { fund: previewFundDetail } = useFund(previewFund?.slug);
   const previewPresetAmountsCents = getPresetAmountsCents(previewFund?.category);
   const topCategories = [...(previewFundDetail?.expensesByCategory ?? [])]

@@ -21,6 +21,9 @@ export const AuditAction = {
   WEBHOOK_SIGNATURE_INVALID: "webhook.signature_invalid",
   RATE_LIMIT_EXCEEDED: "security.rate_limit_exceeded",
   AUTHZ_DENIED: "security.authz_denied",
+  OWNER_DELETED_USER: "owner.deleted_user",
+  OWNER_DELETED_ORGANIZATION: "owner.deleted_organization",
+  OWNER_DELETED_FUND: "owner.deleted_fund",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];

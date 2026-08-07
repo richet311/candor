@@ -64,6 +64,17 @@ export function Navbar() {
               </Button>
             </>
           )}
+
+          {user?.role === "OWNER" && (
+            <>
+              <Link to="/owner" className={NAV_LINK}>
+                Owner dashboard
+              </Link>
+              <Button variant="ghost" onClick={handleLogout} className={NAV_GHOST}>
+                Log out
+              </Button>
+            </>
+          )}
         </nav>
       </div>
     </header>

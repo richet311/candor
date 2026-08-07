@@ -14,6 +14,7 @@ import donationRouter from "./routes/donation.routes.js";
 import webhookRouter from "./routes/webhook.routes.js";
 import auditRouter from "./routes/audit.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
+import ownerRouter from "./routes/owner.routes.js";
 import { UPLOADS_DIR } from "./lib/uploadsDir.js";
 
 export function createApp() {
@@ -45,6 +46,7 @@ export function createApp() {
   app.use("/api/donations", donationRouter);
   app.use("/api/audit-log", auditRouter);
   app.use("/api/uploads", uploadRouter);
+  app.use("/api/owner", ownerRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

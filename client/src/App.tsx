@@ -11,6 +11,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DonorDashboardPage } from "./pages/DonorDashboardPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { OwnerDashboardPage } from "./pages/OwnerDashboardPage";
 import { DonateSuccessPage } from "./pages/DonateSuccessPage";
 import { DonateCancelledPage } from "./pages/DonateCancelledPage";
 import { OAuthCompletePage } from "./pages/OAuthCompletePage";
@@ -50,6 +51,14 @@ export function App() {
             element={
               <ProtectedRoute role="ADMIN">
                 <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/owner"
+            element={
+              <ProtectedRoute role="OWNER">
+                <OwnerDashboardPage />
               </ProtectedRoute>
             }
           />

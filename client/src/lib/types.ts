@@ -1,4 +1,4 @@
-export type Role = "ADMIN" | "DONOR";
+export type Role = "ADMIN" | "DONOR" | "OWNER";
 
 export interface User {
   id: string;
@@ -114,4 +114,52 @@ export interface AuditLogEntry {
   metadata: Record<string, unknown> | null;
   createdAt: string;
   actor: { name: string; email: string } | null;
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  usersByRole: { ADMIN: number; DONOR: number; OWNER: number };
+  totalOrganizations: number;
+  activeFunds: number;
+  inactiveFunds: number;
+  totalDonations: number;
+  totalDonationVolumeCents: number;
+  totalExpensesCents: number;
+}
+
+export interface OwnerUserRow {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  emailVerified: boolean;
+  isDemoDonor: boolean;
+  organization: { name: string; slug: string } | null;
+  donationCount: number;
+  expenseCount: number;
+  createdAt: string;
+}
+
+export interface OwnerOrganizationRow {
+  id: string;
+  name: string;
+  slug: string;
+  verified: boolean;
+  ein: string | null;
+  fundCount: number;
+  memberCount: number;
+  createdAt: string;
+}
+
+export interface OwnerFundRow {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  isActive: boolean;
+  organization: { name: string; slug: string };
+  raisedCents: number;
+  donationCount: number;
+  expenseCount: number;
+  createdAt: string;
 }

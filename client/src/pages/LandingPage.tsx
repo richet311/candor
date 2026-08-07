@@ -43,10 +43,7 @@ const STEPS = [
 ];
 
 export function LandingPage() {
-  const { funds, isLoading } = useFunds();
-  const totalRaisedCents = funds.reduce((sum, f) => sum + f.raisedCents, 0);
-  const totalSpentCents = funds.reduce((sum, f) => sum + f.spentCents, 0);
-  const categories = Array.from(new Set(funds.map((f) => f.category)));
+  const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading } = useFunds();
   const previewFund = funds[0];
   const { fund: previewFundDetail } = useFund(previewFund?.slug);
   const previewPresetAmountsCents = getPresetAmountsCents(previewFund?.category);
@@ -150,7 +147,7 @@ export function LandingPage() {
       </section>
 
       <PageContainer className="-mt-8 grid gap-4 pb-4 sm:-mt-10 sm:grid-cols-3 sm:gap-5">
-        <StatTile label="Active funds" value={isLoading ? "…" : String(funds.length)} />
+        <StatTile label="Active funds" value={isLoading ? "…" : String(total)} />
         <StatTile label="Raised so far" value={isLoading ? "…" : formatCents(totalRaisedCents)} />
         <StatTile label="Itemized and spent" value={isLoading ? "…" : formatCents(totalSpentCents)} hint="Every dollar logged by category" />
       </PageContainer>

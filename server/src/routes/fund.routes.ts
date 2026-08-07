@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { validateBody } from "../middleware/validate.js";
+import { validateBody, validateQuery } from "../middleware/validate.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { recordAuditEvent } from "../services/auditService.js";
@@ -19,10 +19,18 @@ const createFundSchema = z.object({
   coverImageUrl: z.string().trim().url().max(2000).optional().or(z.literal("")),
 });
 
+const listFundsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(48).default(12),
+  search: z.string().trim().max(200).optional(),
+  category: z.string().trim().max(60).optional(),
+});
+
 router.get(
   "/",
-  asyncHandler(async (_req, res) => {
-    res.json({ funds: await fundService.listPublicFunds() });
+  validateQuery(listFundsQuerySchema),
+  asyncHandler(async (req, res) => {
+    res.json(await fundService.listPublicFunds(req.query as unknown as z.infer<typeof listFundsQuerySchema>));
   }),
 );
 

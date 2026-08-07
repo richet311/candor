@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: candor
+          POSTGRES_PASSWORD: candor_dev_only
+          POSTGRES_DB: candor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U candor -d candor"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: server
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://candor:candor_dev_only@localhost:5432/candor
+      CLIENT_ORIGIN: http://localhost:5173
+      # CI-only placeholders, never used against the real Stripe API or a real session
+      JWT_ACCESS_SECRET: ci-only-access-secret-do-not-use-in-production-xxxxx
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-do-not-use-in-production-xxxx
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+
+      - name: Create test database
+        run: PGPASSWORD=candor_dev_only psql -h localhost -U candor -d candor -c "CREATE DATABASE candor_test OWNER candor;"
+
+      - run: npm run prisma:generate
+
+      - name: Apply migrations to the test database
+        run: npm run prisma:deploy
+        env:
+          DATABASE_URL: postgresql://candor:candor_dev_only@localhost:5432/candor_test
+      - run: npm test
+      - run: npm run build
+
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

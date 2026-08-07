@@ -66,7 +66,7 @@ export function describeAuditEntry(entry: AuditLogEntry): { text: string; catego
       };
     case "donation.succeeded":
       return {
-        text: amount && fundName ? `Received a ${amount} donation to ${fundName}` : "Donation received",
+        text: amount && fundName ? `Sent a ${amount} donation to ${fundName}` : "Sent a donation",
         category: "donations",
         tone: "success",
       };

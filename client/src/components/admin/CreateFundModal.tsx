@@ -1,22 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
+import { Select } from "../ui/Select";
 import { Button } from "../ui/Button";
 import { ImageUploadField } from "../ui/ImageUploadField";
 import { apiFetch, ApiError } from "../../lib/api";
 import { createLogger } from "../../lib/logger";
 import { useToast } from "../../context/ToastContext";
+import { FUND_CATEGORIES, OTHER_CATEGORY } from "../../lib/fundCategories";
 
 const log = createLogger("create-fund");
 
 export function CreateFundModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<string>(FUND_CATEGORIES[0]);
+  const [customCategory, setCustomCategory] = useState("");
   const [description, setDescription] = useState("");
   const [goalDollars, setGoalDollars] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
+  const isOther = category === OTHER_CATEGORY;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -26,7 +30,7 @@ export function CreateFundModal({ onClose, onCreated }: { onClose: () => void; o
         method: "POST",
         body: JSON.stringify({
           name,
-          category,
+          category: isOther ? customCategory.trim() : category,
           description,
           goalCents: Math.round(Number(goalDollars) * 100),
           coverImageUrl,
@@ -48,7 +52,23 @@ export function CreateFundModal({ onClose, onCreated }: { onClose: () => void; o
     <Modal title="New fund" onClose={onClose}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Fund name" required value={name} onChange={(e) => setName(e.target.value)} />
-        <Input label="Category" required placeholder="e.g. Infrastructure" value={category} onChange={(e) => setCategory(e.target.value)} />
+        <Select label="Category" required value={category} onChange={(e) => setCategory(e.target.value)}>
+          {FUND_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+          <option value={OTHER_CATEGORY}>{OTHER_CATEGORY}</option>
+        </Select>
+        {isOther && (
+          <Input
+            label="Custom category"
+            required
+            placeholder="e.g. Infrastructure"
+            value={customCategory}
+            onChange={(e) => setCustomCategory(e.target.value)}
+          />
+        )}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="fund-description" className="text-sm font-medium text-[var(--color-ink)]">
             Description

@@ -12,6 +12,9 @@ const CATEGORY_PRESET_AMOUNTS_CENTS: Record<string, number[]> = {
   "Youth Development": [2500, 5000, 10000, 25000],
   "Youth Mentorship": [2500, 5000, 10000, 25000],
   "Animal Welfare": [2500, 5000, 10000, 25000],
+  Healthcare: [5000, 10000, 25000, 50000],
+  "Human Rights": [2500, 5000, 10000, 25000],
+  "Arts & Culture": [2500, 5000, 10000, 25000],
 };
 
 export function getPresetAmountsCents(category?: string | null): number[] {

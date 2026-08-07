@@ -3,7 +3,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validateBody } from "../middleware/validate.js";
-import { authLimiter } from "../middleware/rateLimit.js";
+import { authLimiter, verificationLimiter } from "../middleware/rateLimit.js";
 import { requireAuth } from "../middleware/auth.js";
 import { env, isProd } from "../config/env.js";
 import { AppError, UnauthorizedError } from "../utils/AppError.js";
@@ -45,6 +45,10 @@ const updateProfileSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   avatarUrl: z.string().trim().url().max(2000).optional().or(z.literal("")),
   bio: z.string().trim().max(280).optional().or(z.literal("")),
+});
+
+const verifyEmailSchema = z.object({
+  token: z.string().min(1),
 });
 
 function setRefreshCookie(res: Response, token: string) {
@@ -150,6 +154,26 @@ router.patch(
       { ipAddress: req.ip, userAgent: req.headers["user-agent"] },
     );
     res.json({ user });
+  }),
+);
+
+router.post(
+  "/verify-email",
+  authLimiter,
+  validateBody(verifyEmailSchema),
+  asyncHandler(async (req, res) => {
+    const user = await authService.verifyEmail(req.body.token);
+    res.json({ user });
+  }),
+);
+
+router.post(
+  "/resend-verification",
+  requireAuth,
+  verificationLimiter,
+  asyncHandler(async (req, res) => {
+    await authService.resendVerificationEmail(req.user!.sub, { ipAddress: req.ip, userAgent: req.headers["user-agent"] });
+    res.status(204).send();
   }),
 );
 

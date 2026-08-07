@@ -18,6 +18,8 @@ interface AuthContextValue {
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (input: { name?: string; avatarUrl?: string; bio?: string }) => Promise<void>;
+  verifyEmail: (token: string) => Promise<User>;
+  resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -85,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(input) });
       applySession(data);
-      toast.success(`Account created. Welcome, ${data.user.name}`);
+      toast.success(`Account created. Check your email to verify it, ${data.user.name}`);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Could not create your account right now";
       toast.error(message, err);
@@ -97,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await apiFetch<AuthResponse>("/auth/register-organization", { method: "POST", body: JSON.stringify(input) });
       applySession(data);
-      toast.success(`${input.orgName} is set up. Welcome, ${data.user.name}`);
+      toast.success(`${input.orgName} is set up. Check your email to verify it, ${data.user.name}`);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Could not register your organization right now";
       toast.error(message, err);
@@ -129,6 +131,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function verifyEmail(token: string) {
+    const data = await apiFetch<{ user: User }>("/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) });
+    setUser((current) => (current && current.id === data.user.id ? data.user : current));
+    return data.user;
+  }
+
+  async function resendVerificationEmail() {
+    try {
+      await apiFetch<void>("/auth/resend-verification", { method: "POST" });
+      toast.success("Verification email sent, check your inbox");
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not resend the verification email";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
   async function logout() {
     try {
       await apiFetch<void>("/auth/logout", { method: "POST" });
@@ -142,7 +161,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, registerDonor, registerOrganization, loginWithGoogle, logout, updateProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        registerDonor,
+        registerOrganization,
+        loginWithGoogle,
+        logout,
+        updateProfile,
+        verifyEmail,
+        resendVerificationEmail,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

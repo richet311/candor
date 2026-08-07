@@ -31,6 +31,7 @@ model User {
   name                String
   avatarUrl           String?
   bio                 String?
+  emailVerified       Boolean       @default(false)
   isDemoDonor         Boolean       @default(false)
   role                Role          @default(DONOR)
   organizationId      String?

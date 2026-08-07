@@ -4,7 +4,8 @@ import { prisma } from "../lib/prisma.js";
 import { createLogger } from "../lib/logger.js";
 import { recordAuditEvent } from "./auditService.js";
 import { AuditAction } from "../types/audit.js";
-import { NotFoundError, ValidationError } from "../utils/AppError.js";
+import { ForbiddenError, NotFoundError, ValidationError } from "../utils/AppError.js";
+import * as emailService from "./emailService.js";
 
 const log = createLogger("stripe");
 
@@ -20,6 +21,10 @@ interface CreateCheckoutInput {
 }
 
 export async function createDonationCheckout(input: CreateCheckoutInput) {
+  const donor = await prisma.user.findUnique({ where: { id: input.donorUserId } });
+  if (!donor) throw new NotFoundError("Account not found");
+  if (!donor.emailVerified) throw new ForbiddenError("Please verify your email before donating");
+
   const fund = await prisma.fund.findUnique({ where: { id: input.fundId } });
   if (!fund || !fund.isActive) throw new NotFoundError("Fund not found or no longer active");
   if (input.amountCents < 100) throw new ValidationError("Minimum donation is $1.00");
@@ -90,6 +95,42 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   });
 
   log.info({ donationId: donation.id, fundId: donation.fundId }, "donation succeeded");
+
+  await sendReceiptEmail(donation.id);
+}
+
+// Isolated so a failure here (bad email, provider outage) never affects the webhook's own
+// success path above, Stripe only cares that we returned 200.
+async function sendReceiptEmail(donationId: string) {
+  try {
+    const donation = await prisma.donation.findUnique({
+      where: { id: donationId },
+      include: { donor: true, fund: { include: { organization: true } } },
+    });
+    if (!donation) return;
+    // The background simulator donates as the demo donor pool, don't email fake inboxes.
+    if (donation.donor.isDemoDonor) return;
+
+    const orgTotal = await prisma.donation.aggregate({
+      where: {
+        donorUserId: donation.donorUserId,
+        status: "SUCCEEDED",
+        fund: { organizationId: donation.fund.organizationId },
+      },
+      _sum: { amountCents: true },
+    });
+
+    await emailService.sendDonationReceiptEmail({
+      to: donation.donor.email,
+      name: donation.donor.name,
+      amountCents: donation.amountCents,
+      fundName: donation.fund.name,
+      organizationName: donation.fund.organization.name,
+      orgTotalCents: orgTotal._sum.amountCents ?? donation.amountCents,
+    });
+  } catch (err) {
+    log.error({ err, donationId }, "failed to send donation receipt email");
+  }
 }
 
 export async function handleCheckoutSessionFailed(session: Stripe.Checkout.Session) {

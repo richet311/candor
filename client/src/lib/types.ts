@@ -8,6 +8,7 @@ export interface User {
   bio?: string | null;
   role: Role;
   organizationId: string | null;
+  emailVerified: boolean;
 }
 
 export interface OrgProfile {

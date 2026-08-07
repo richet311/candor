@@ -5,8 +5,18 @@ import { createLogger } from "../lib/logger.js";
 import { recordAuditEvent } from "./auditService.js";
 import { AuditAction } from "../types/audit.js";
 import { ConflictError, NotFoundError, UnauthorizedError } from "../utils/AppError.js";
-import { hashToken, signAccessToken, signOAuthState, signRefreshToken, verifyOAuthState, verifyRefreshToken } from "../utils/tokens.js";
+import {
+  hashToken,
+  signAccessToken,
+  signEmailVerificationToken,
+  signOAuthState,
+  signRefreshToken,
+  verifyEmailVerificationToken,
+  verifyOAuthState,
+  verifyRefreshToken,
+} from "../utils/tokens.js";
 import { verifyGoogleIdToken } from "./googleAuthService.js";
+import * as emailService from "./emailService.js";
 import { getProvider, listProviders, type OAuthProfile, type OAuthProviderId } from "./oauthProviders.js";
 import type { OAuthProvider as OAuthProviderEnum, Role, User } from "../../generated/client/index.js";
 
@@ -57,7 +67,8 @@ export async function findOrCreateOAuthUser(provider: OAuthProviderEnum, profile
   }
 
   return prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR" } });
+    // The OAuth provider already verified this email address, so there's nothing to confirm.
+    const user = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR", emailVerified: true } });
     await tx.oAuthAccount.create({ data: { userId: user.id, provider, providerAccountId: profile.providerAccountId } });
     return user;
   });
@@ -72,6 +83,7 @@ function publicUser(user: User) {
     bio: user.bio,
     role: user.role,
     organizationId: user.organizationId,
+    emailVerified: user.emailVerified,
   };
 }
 
@@ -109,6 +121,8 @@ export async function registerDonor(input: { email: string; password: string; na
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_REGISTER, targetType: "User", targetId: user.id, ipAddress: meta.ipAddress });
   log.info({ userId: user.id }, "donor registered");
 
+  await emailService.sendVerificationEmail(user.email, user.name, signEmailVerificationToken(user.id));
+
   const tokens = await issueTokenPair(user, meta);
   return { user: publicUser(user), ...tokens };
 }
@@ -137,6 +151,8 @@ export async function registerOrganization(
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_REGISTER, targetType: "Organization", targetId: user.organizationId ?? undefined, ipAddress: meta.ipAddress });
   log.info({ userId: user.id, organizationId: user.organizationId }, "organization + admin registered");
+
+  await emailService.sendVerificationEmail(user.email, user.name, signEmailVerificationToken(user.id));
 
   const tokens = await issueTokenPair(user, meta);
   return { user: publicUser(user), ...tokens };
@@ -284,6 +300,30 @@ export async function refreshSession(refreshToken: string, meta: RequestMeta) {
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_REFRESH, ipAddress: meta.ipAddress });
 
   return { user: publicUser(user), accessToken, refreshToken: newRefreshToken };
+}
+
+export async function verifyEmail(token: string) {
+  const userId = verifyEmailVerificationToken(token);
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new UnauthorizedError("Invalid or expired verification link");
+
+  if (user.emailVerified) return publicUser(user);
+
+  const updated = await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
+  await recordAuditEvent({ actorUserId: user.id, action: AuditAction.EMAIL_VERIFIED, targetType: "User", targetId: user.id });
+  log.info({ userId: user.id }, "email verified");
+
+  return publicUser(updated);
+}
+
+export async function resendVerificationEmail(userId: string, meta: RequestMeta) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new UnauthorizedError("Session expired, please sign in again");
+  if (user.emailVerified) return;
+
+  await emailService.sendVerificationEmail(user.email, user.name, signEmailVerificationToken(user.id));
+  await recordAuditEvent({ actorUserId: user.id, action: AuditAction.EMAIL_VERIFICATION_RESENT, targetType: "User", targetId: user.id, ipAddress: meta.ipAddress });
+  log.info({ userId: user.id }, "verification email resent");
 }
 
 export async function logout(refreshToken: string) {

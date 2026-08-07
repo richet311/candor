@@ -14,6 +14,7 @@ import { DonateCancelledPage } from "./pages/DonateCancelledPage";
 import { OAuthCompletePage } from "./pages/OAuthCompletePage";
 import { TermsPage } from "./pages/TermsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 
 export function App() {
   return (
@@ -31,6 +32,7 @@ export function App() {
           <Route path="/oauth/complete" element={<OAuthCompletePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route
             path="/dashboard"
             element={

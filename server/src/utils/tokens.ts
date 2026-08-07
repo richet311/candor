@@ -62,3 +62,27 @@ export function verifyOAuthState(state: string, expectedProvider: string): void 
     throw new UnauthorizedError("Invalid or expired sign-in attempt, please try again");
   }
 }
+
+interface EmailVerificationPayload {
+  purpose: "email_verification";
+  sub: string;
+}
+
+export function signEmailVerificationToken(userId: string): string {
+  return jwt.sign({ purpose: "email_verification", sub: userId } satisfies EmailVerificationPayload, env.JWT_ACCESS_SECRET, {
+    expiresIn: "24h",
+  });
+}
+
+export function verifyEmailVerificationToken(token: string): string {
+  let payload: EmailVerificationPayload;
+  try {
+    payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as EmailVerificationPayload;
+  } catch {
+    throw new UnauthorizedError("Invalid or expired verification link");
+  }
+  if (payload.purpose !== "email_verification") {
+    throw new UnauthorizedError("Invalid or expired verification link");
+  }
+  return payload.sub;
+}

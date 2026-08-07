@@ -18,6 +18,11 @@ const envSchema = z.object({
 
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
+
+  // Optional: without this, verification/receipt emails are logged instead of sent,
+  // so the app still runs end-to-end without a real email provider configured.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default("Candor <onboarding@resend.dev>"),
 });
 
 const parsed = envSchema.safeParse(process.env);

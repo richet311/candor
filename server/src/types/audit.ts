@@ -8,6 +8,8 @@ export const AuditAction = {
   AUTH_REFRESH: "auth.refresh",
   AUTH_REFRESH_REUSE_DETECTED: "auth.refresh_reuse_detected",
   AUTH_LOGOUT: "auth.logout",
+  EMAIL_VERIFIED: "auth.email_verified",
+  EMAIL_VERIFICATION_RESENT: "auth.email_verification_resent",
   USER_PROFILE_UPDATED: "user.profile_updated",
   ORG_PROFILE_UPDATED: "org.profile_updated",
   FUND_CREATED: "fund.created",

@@ -35,3 +35,4 @@ export function buildLimiter(scope: string, options: Partial<Options> & { window
 export const authLimiter = buildLimiter("auth", { windowMs: 15 * 60 * 1000, limit: 10 });
 export const donationLimiter = buildLimiter("donation", { windowMs: 60 * 60 * 1000, limit: 20 });
 export const apiLimiter = buildLimiter("api", { windowMs: 15 * 60 * 1000, limit: 300 });
+export const verificationLimiter = buildLimiter("email-verification", { windowMs: 15 * 60 * 1000, limit: 3 });

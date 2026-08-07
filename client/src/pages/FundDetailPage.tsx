@@ -19,10 +19,20 @@ import { formatCents } from "../lib/money";
 export function FundDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { fund, isLoading } = useFund(slug);
-  const { user } = useAuth();
+  const { user, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isDonateOpen, setIsDonateOpen] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  async function handleResend() {
+    setIsResending(true);
+    try {
+      await resendVerificationEmail();
+    } finally {
+      setIsResending(false);
+    }
+  }
 
   // React Router reuses this component across slug changes (e.g. browser back/forward
   // between two fund pages) rather than remounting it, so any open modal would otherwise
@@ -190,11 +200,20 @@ export function FundDetailPage() {
                 <ProgressBar raisedCents={fund.raisedCents} goalCents={fund.goalCents} />
                 <p className="text-xs text-[var(--color-ink-soft)]">{formatCents(fund.spentCents)} spent so far, itemized above</p>
               </div>
-              {user ? (
+              {user && user.emailVerified && (
                 <Button onClick={() => setIsDonateOpen(true)} className="w-full">
                   Donate to this fund
                 </Button>
-              ) : (
+              )}
+              {user && !user.emailVerified && (
+                <div className="flex flex-col gap-2 rounded-xl border border-[var(--color-border)] bg-black/[0.02] p-3 text-center">
+                  <p className="text-xs text-[var(--color-ink-soft)]">Verify your email before you can donate.</p>
+                  <Button variant="ghost" onClick={handleResend} isLoading={isResending} className="w-full">
+                    Resend verification email
+                  </Button>
+                </div>
+              )}
+              {!user && (
                 <Link to="/login">
                   <Button className="w-full">Log in to donate</Button>
                 </Link>

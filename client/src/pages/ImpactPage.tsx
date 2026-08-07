@@ -33,7 +33,8 @@ export function ImpactPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+    // toast omitted from deps, see useToast for why
+  }, []);
 
   if (isLoading) return <Spinner label="Loading impact stats" />;
   if (!stats) return null;

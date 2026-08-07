@@ -54,6 +54,28 @@ export function sendVerificationEmail(to: string, name: string, token: string): 
   });
 }
 
+export function sendNewDeviceLoginEmail(
+  to: string,
+  name: string,
+  meta: { userAgent: string | null; ipAddress: string | null; when: Date },
+): Promise<void> {
+  return sendEmail({
+    to,
+    subject: "New sign-in to your Candor account",
+    html: `
+      <p>Hi ${escapeHtml(name)},</p>
+      <p>Your Candor account was just signed into from a device we haven't seen on this account before.</p>
+      <ul>
+        <li><strong>When:</strong> ${escapeHtml(meta.when.toUTCString())}</li>
+        <li><strong>Device:</strong> ${escapeHtml(meta.userAgent ?? "unknown")}</li>
+        ${meta.ipAddress ? `<li><strong>IP address:</strong> ${escapeHtml(meta.ipAddress)}</li>` : ""}
+      </ul>
+      <p>If this was you, there's nothing else to do. Candor doesn't have a self-service password
+      reset yet, so if you don't recognize this activity, please get in touch with us directly.</p>
+    `,
+  });
+}
+
 export function sendDonationReceiptEmail(input: {
   to: string;
   name: string;

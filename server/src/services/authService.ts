@@ -36,7 +36,21 @@ interface TokenPair {
   refreshToken: string;
 }
 
+// A device is only "new" if the account has signed in from somewhere else before, a fresh
+// registration's first session shouldn't alarm anyone, and only if we've genuinely never seen
+// this exact user agent for this account. IP alone isn't a good fingerprint since it changes
+// constantly on mobile networks and would make this fire on almost every login.
+async function isNewDevice(userId: string, userAgent: string | null | undefined): Promise<boolean> {
+  if (!userAgent) return false;
+  const priorSessionCount = await prisma.refreshToken.count({ where: { userId } });
+  if (priorSessionCount === 0) return false;
+  const knownDevice = await prisma.refreshToken.findFirst({ where: { userId, userAgent } });
+  return !knownDevice;
+}
+
 async function issueTokenPair(user: User, meta: RequestMeta): Promise<TokenPair> {
+  const isNew = await isNewDevice(user.id, meta.userAgent);
+
   const accessToken = signAccessToken({ sub: user.id, role: user.role, organizationId: user.organizationId });
   const { token: refreshToken, expiresAt } = signRefreshToken(user.id);
 
@@ -49,6 +63,22 @@ async function issueTokenPair(user: User, meta: RequestMeta): Promise<TokenPair>
       ipAddress: meta.ipAddress ?? undefined,
     },
   });
+
+  if (isNew) {
+    await emailService.sendNewDeviceLoginEmail(user.email, user.name, {
+      userAgent: meta.userAgent ?? null,
+      ipAddress: meta.ipAddress ?? null,
+      when: new Date(),
+    });
+    await recordAuditEvent({
+      actorUserId: user.id,
+      action: AuditAction.AUTH_NEW_DEVICE_LOGIN,
+      targetType: "User",
+      targetId: user.id,
+      metadata: { userAgent: meta.userAgent ?? null },
+      ipAddress: meta.ipAddress,
+    });
+  }
 
   return { accessToken, refreshToken };
 }

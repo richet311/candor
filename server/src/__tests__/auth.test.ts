@@ -50,6 +50,19 @@ describe("donor registration and login", () => {
     expect(res.status).toBe(401);
     expect(res.body.error).toMatch(/locked/i);
   });
+
+  it("flags a login from an unseen device but not the registration session or a repeat device", async () => {
+    await request(app)
+      .post("/api/auth/register")
+      .set("User-Agent", "device-a")
+      .send({ email: "roaming@example.com", password: "correcthorsebattery", name: "Roamer" });
+
+    await request(app).post("/api/auth/login").set("User-Agent", "device-a").send({ email: "roaming@example.com", password: "correcthorsebattery" });
+    await request(app).post("/api/auth/login").set("User-Agent", "device-b").send({ email: "roaming@example.com", password: "correcthorsebattery" });
+
+    const events = await prisma.auditLog.findMany({ where: { action: "auth.new_device_login" } });
+    expect(events).toHaveLength(1);
+  });
 });
 
 describe("role-based access control", () => {

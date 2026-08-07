@@ -16,6 +16,7 @@ const createFundSchema = z.object({
   description: z.string().trim().min(10).max(2000),
   category: z.string().trim().min(2).max(60),
   goalCents: z.number().int().positive().max(1_000_000_00),
+  coverImageUrl: z.string().trim().url().max(2000).optional().or(z.literal("")),
 });
 
 router.get(
@@ -57,7 +58,12 @@ router.post(
       .replace(/(^-|-$)/g, "");
 
     const fund = await prisma.fund.create({
-      data: { ...req.body, organizationId: req.user!.organizationId, slug: `${slugBase}-${Date.now().toString(36)}` },
+      data: {
+        ...req.body,
+        coverImageUrl: req.body.coverImageUrl || null,
+        organizationId: req.user!.organizationId,
+        slug: `${slugBase}-${Date.now().toString(36)}`,
+      },
     });
 
     await recordAuditEvent({

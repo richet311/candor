@@ -17,6 +17,7 @@ interface AuthContextValue {
   registerOrganization: (input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string }) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (input: { name?: string; avatarUrl?: string; bio?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -116,6 +117,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function updateProfile(input: { name?: string; avatarUrl?: string; bio?: string }) {
+    try {
+      const data = await apiFetch<{ user: User }>("/auth/me", { method: "PATCH", body: JSON.stringify(input) });
+      setUser(data.user);
+      toast.success("Profile updated");
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not update your profile";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
   async function logout() {
     try {
       await apiFetch<void>("/auth/logout", { method: "POST" });
@@ -129,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, registerDonor, registerOrganization, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, registerDonor, registerOrganization, loginWithGoogle, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

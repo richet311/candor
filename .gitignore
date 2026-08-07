@@ -8,4 +8,5 @@ build/
 coverage/
 server/generated/
 server/prisma/dev.db
+server/uploads/
 .vite/

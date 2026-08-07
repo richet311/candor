@@ -84,3 +84,36 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}, allow
   log.debug(`${method} ${path} succeeded`, data);
   return data;
 }
+
+export async function uploadImage(file: File, allowRetry = true): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/uploads/image`, {
+      method: "POST",
+      credentials: "include",
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      body: formData,
+    });
+  } catch (err) {
+    log.error("image upload network error", err);
+    throw new ApiError("Could not reach the server. Check your connection and try again.", 0);
+  }
+
+  if (res.status === 401 && allowRetry) {
+    log.warn("access token rejected on upload, attempting silent refresh");
+    const refreshed = await refreshAccessToken();
+    if (refreshed) return uploadImage(file, false);
+    unauthorizedHandler?.();
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as { error?: string });
+    log.error("image upload failed", { status: res.status, body });
+    throw new ApiError(body.error ?? "Could not upload image", res.status);
+  }
+
+  return (await res.json()) as { url: string };
+}

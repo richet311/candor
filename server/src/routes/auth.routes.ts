@@ -41,6 +41,12 @@ const googleLoginSchema = z.object({
   idToken: z.string().min(1),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  avatarUrl: z.string().trim().url().max(2000).optional().or(z.literal("")),
+  bio: z.string().trim().max(280).optional().or(z.literal("")),
+});
+
 function setRefreshCookie(res: Response, token: string) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
@@ -125,7 +131,25 @@ router.get(
   "/me",
   requireAuth,
   asyncHandler(async (req, res) => {
-    res.json({ user: req.user });
+    res.json({ user: await authService.getMe(req.user!.sub) });
+  }),
+);
+
+router.patch(
+  "/me",
+  requireAuth,
+  validateBody(updateProfileSchema),
+  asyncHandler(async (req, res) => {
+    const user = await authService.updateProfile(
+      req.user!.sub,
+      {
+        name: req.body.name,
+        avatarUrl: req.body.avatarUrl === undefined ? undefined : req.body.avatarUrl || null,
+        bio: req.body.bio === undefined ? undefined : req.body.bio || null,
+      },
+      { ipAddress: req.ip, userAgent: req.headers["user-agent"] },
+    );
+    res.json({ user });
   }),
 );
 

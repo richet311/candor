@@ -68,9 +68,33 @@ function publicUser(user: User) {
     id: user.id,
     email: user.email,
     name: user.name,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
     role: user.role,
     organizationId: user.organizationId,
   };
+}
+
+export async function getMe(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new UnauthorizedError("Session expired, please sign in again");
+  return publicUser(user);
+}
+
+export async function updateProfile(
+  userId: string,
+  input: { name?: string; avatarUrl?: string | null; bio?: string | null },
+  meta: RequestMeta,
+) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { name: input.name, avatarUrl: input.avatarUrl, bio: input.bio },
+  });
+
+  await recordAuditEvent({ actorUserId: user.id, action: AuditAction.USER_PROFILE_UPDATED, targetType: "User", targetId: user.id, ipAddress: meta.ipAddress });
+  log.info({ userId: user.id }, "profile updated");
+
+  return publicUser(user);
 }
 
 export async function registerDonor(input: { email: string; password: string; name: string }, meta: RequestMeta) {

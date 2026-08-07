@@ -6,33 +6,39 @@ import { Badge } from "../components/ui/Badge";
 import { Spinner } from "../components/ui/Spinner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ProgressBar } from "../components/ui/ProgressBar";
+import { OrgAvatar } from "../components/OrgAvatar";
 import { CreateFundModal } from "../components/admin/CreateFundModal";
 import { LogExpenseModal } from "../components/admin/LogExpenseModal";
+import { EditOrgModal } from "../components/admin/EditOrgModal";
 import { AuditLogTable } from "../components/admin/AuditLogTable";
 import { apiFetch, ApiError } from "../lib/api";
 import { createLogger } from "../lib/logger";
 import { useToast } from "../context/ToastContext";
 import { formatCents } from "../lib/money";
-import type { AuditLogEntry, Fund } from "../lib/types";
+import type { AuditLogEntry, Fund, OrgProfile } from "../lib/types";
 
 const log = createLogger("admin-dashboard");
 
 export function AdminDashboardPage() {
   const [funds, setFunds] = useState<Fund[]>([]);
   const [auditEntries, setAuditEntries] = useState<AuditLogEntry[]>([]);
+  const [org, setOrg] = useState<OrgProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [expenseTarget, setExpenseTarget] = useState<Fund | null>(null);
+  const [isEditingOrg, setIsEditingOrg] = useState(false);
   const toast = useToast();
 
   const load = useCallback(async () => {
     try {
-      const [fundsRes, auditRes] = await Promise.all([
+      const [fundsRes, auditRes, orgRes] = await Promise.all([
         apiFetch<{ funds: Fund[] }>("/funds/mine"),
         apiFetch<{ entries: AuditLogEntry[] }>("/audit-log"),
+        apiFetch<{ organization: OrgProfile }>("/organizations/me"),
       ]);
       setFunds(fundsRes.funds);
       setAuditEntries(auditRes.entries);
+      setOrg(orgRes.organization);
       log.info(`loaded ${fundsRes.funds.length} funds, ${auditRes.entries.length} audit entries`);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Could not load the admin dashboard";
@@ -55,9 +61,25 @@ export function AdminDashboardPage() {
 
   return (
     <PageContainer className="flex flex-col gap-8">
+      {org && (
+        <Card>
+          {org.bannerUrl && <img src={org.bannerUrl} alt="" className="aspect-[5/1] w-full object-cover" />}
+          <CardBody className="flex items-center gap-4">
+            <OrgAvatar name={org.name} imageUrl={org.logoUrl} size="lg" />
+            <div className="flex flex-1 flex-col gap-1">
+              <span className="font-semibold text-[var(--color-ink)]">{org.name}</span>
+              {org.description && <p className="text-sm text-[var(--color-ink-soft)]">{org.description}</p>}
+            </div>
+            <Button variant="ghost" onClick={() => setIsEditingOrg(true)}>
+              Edit organization
+            </Button>
+          </CardBody>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-[var(--color-ink)]">Admin dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Admin dashboard</h1>
           <p className="text-sm text-[var(--color-ink-soft)]">{formatCents(totalRaised)} raised · {formatCents(totalSpent)} spent across {funds.length} funds</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>New fund</Button>
@@ -109,6 +131,9 @@ export function AdminDashboardPage() {
           onClose={() => setExpenseTarget(null)}
           onLogged={() => void load()}
         />
+      )}
+      {isEditingOrg && org && (
+        <EditOrgModal org={org} onClose={() => setIsEditingOrg(false)} onUpdated={() => void load()} />
       )}
     </PageContainer>
   );

@@ -3,7 +3,6 @@ import { Card, CardBody } from "./ui/Card";
 import { ProgressBar } from "./ui/ProgressBar";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { OrgAvatar } from "./OrgAvatar";
-import { FundCoverArt } from "./FundCoverArt";
 import { formatCents } from "../lib/money";
 import type { Fund } from "../lib/types";
 
@@ -11,15 +10,11 @@ export function FundCard({ fund }: { fund: Fund }) {
   return (
     <Link to={`/funds/${fund.slug}`}>
       <Card className="flex h-full flex-col transition-all hover:-translate-y-1 hover:shadow-xl">
-        <div className="relative shrink-0">
-          <FundCoverArt category={fund.category} imageUrl={fund.coverImageUrl} className="aspect-[16/10]" />
-          <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[var(--color-ink)] shadow-sm backdrop-blur-sm">
-            {fund.category}
-          </span>
-        </div>
-
         <CardBody className="flex flex-1 flex-col gap-3">
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-[var(--color-ink)]">{fund.name}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-[var(--color-ink)]">{fund.name}</h3>
+            <span className="shrink-0 rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium text-[var(--color-ink-soft)]">{fund.category}</span>
+          </div>
 
           {fund.organization && (
             <div className="flex items-center gap-2">

@@ -17,7 +17,7 @@ export function DonateSuccessPage() {
             ledger within a few seconds.
           </p>
           <Link to="/dashboard">
-            <Button>View my giving</Button>
+            <Button>View my donations</Button>
           </Link>
         </CardBody>
       </Card>

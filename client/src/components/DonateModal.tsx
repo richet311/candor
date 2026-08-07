@@ -4,14 +4,25 @@ import { Button } from "./ui/Button";
 import { apiFetch, ApiError } from "../lib/api";
 import { createLogger } from "../lib/logger";
 import { useToast } from "../context/ToastContext";
-
-const PRESET_AMOUNTS_CENTS = [2500, 5000, 10000, 25000];
+import { getPresetAmountsCents } from "../lib/donationPresets";
 
 const log = createLogger("donate");
 
-export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fundName: string; onClose: () => void }) {
-  const [amountCents, setAmountCents] = useState(PRESET_AMOUNTS_CENTS[1]);
+export function DonateModal({
+  fundId,
+  fundName,
+  fundCategory,
+  onClose,
+}: {
+  fundId: string;
+  fundName: string;
+  fundCategory?: string | null;
+  onClose: () => void;
+}) {
+  const presetAmountsCents = getPresetAmountsCents(fundCategory);
+  const [amountCents, setAmountCents] = useState(presetAmountsCents[1]);
   const [customAmount, setCustomAmount] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
 
@@ -32,7 +43,7 @@ export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fun
       log.info("starting checkout", { fundId, amountCents });
       const data = await apiFetch<{ checkoutUrl: string }>("/donations/checkout", {
         method: "POST",
-        body: JSON.stringify({ fundId, amountCents }),
+        body: JSON.stringify({ fundId, amountCents, isAnonymous }),
       });
       toast.info("Redirecting to Stripe checkout...");
       window.location.href = data.checkoutUrl;
@@ -47,15 +58,15 @@ export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fun
     <Modal title={`Donate to ${fundName}`} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-4 gap-2">
-          {PRESET_AMOUNTS_CENTS.map((value) => (
+          {presetAmountsCents.map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => selectPreset(value)}
-              className={`rounded-md border px-2 py-2 text-sm font-medium ${
+              className={`rounded-xl border px-2 py-2.5 text-sm font-semibold transition-colors ${
                 amountCents === value && !customAmount
                   ? "border-[var(--color-navy)] bg-[var(--color-navy)] text-white"
-                  : "border-[var(--color-border)] text-[var(--color-ink)]"
+                  : "border-[var(--color-border)] text-[var(--color-ink)] hover:border-[var(--color-navy)]/40"
               }`}
             >
               ${value / 100}
@@ -65,13 +76,13 @@ export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fun
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-[var(--color-ink-soft)]">Custom:</span>
-          <div className="flex flex-1 items-center rounded-md border border-[var(--color-border)] px-3 py-1.5">
+          <div className="flex flex-1 items-center rounded-xl border border-[var(--color-border)] px-3.5 py-2">
             <span className="text-sm text-[var(--color-ink-soft)]">$</span>
             <input
               type="number"
               min={1}
-              step="1"
-              placeholder="Other amount"
+              step="0.01"
+              placeholder="0.00"
               value={customAmount}
               onChange={(e) => handleCustomChange(e.target.value)}
               className="w-full border-none px-1 text-sm outline-none"
@@ -79,8 +90,24 @@ export function DonateModal({ fundId, fundName, onClose }: { fundId: string; fun
           </div>
         </div>
 
+        <label className="flex items-center gap-2 text-sm text-[var(--color-ink)]">
+          <input
+            type="checkbox"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            className="h-4 w-4 rounded border-[var(--color-border)] accent-[var(--color-navy)]"
+          />
+          Donate anonymously
+        </label>
+        <p className="-mt-2 text-xs text-[var(--color-ink-soft)]">
+          {isAnonymous
+            ? "Your name won't be shown on this fund's activity log."
+            : "Your name will show on this fund's activity log."}
+        </p>
+
         <p className="text-xs text-[var(--color-ink-soft)]">
-          You'll be redirected to Stripe to complete payment securely. Candor never sees or stores your card details.
+          You'll be redirected to Stripe to complete payment securely. Candor never sees or stores your card details,
+          and takes no cut, only Stripe's standard processing fee applies.
         </p>
 
         <Button onClick={handleDonate} isLoading={isSubmitting} disabled={amountCents < 100} className="w-full">

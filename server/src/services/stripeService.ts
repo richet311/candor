@@ -14,6 +14,7 @@ interface CreateCheckoutInput {
   fundId: string;
   donorUserId: string;
   amountCents: number;
+  isAnonymous: boolean;
   successUrl: string;
   cancelUrl: string;
 }
@@ -46,6 +47,7 @@ export async function createDonationCheckout(input: CreateCheckoutInput) {
       fundId: fund.id,
       donorUserId: input.donorUserId,
       amountCents: input.amountCents,
+      isAnonymous: input.isAnonymous,
       status: "PENDING",
       stripeCheckoutSessionId: session.id,
     },

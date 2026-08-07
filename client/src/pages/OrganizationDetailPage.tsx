@@ -51,9 +51,9 @@ export function OrganizationDetailPage() {
 
       <Card>
         {organization.bannerUrl ? (
-          <img src={organization.bannerUrl} alt="" className="aspect-[21/6] w-full object-cover" />
+          <img src={organization.bannerUrl} alt="" className="aspect-[16/6] w-full object-cover" />
         ) : (
-          <div className="aspect-[21/6] w-full bg-gradient-to-br from-[var(--color-navy)]/10 to-[var(--color-accent)]/10" />
+          <div className="aspect-[16/6] w-full bg-gradient-to-br from-[var(--color-navy)]/10 to-[var(--color-accent)]/10" />
         )}
         <CardBody className="flex flex-col gap-4">
           <div className="flex items-center gap-3">

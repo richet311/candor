@@ -57,7 +57,7 @@ export function Navbar() {
           {user?.role === "ADMIN" && (
             <>
               <Link to="/admin" className={NAV_LINK}>
-                Admin dashboard
+                Nonprofit dashboard
               </Link>
               <Button variant="ghost" onClick={handleLogout} className={NAV_GHOST}>
                 Log out

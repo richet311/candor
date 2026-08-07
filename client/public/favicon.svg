@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="10" fill="#16314F"/>
-  <path d="M14 25.5L20.5 32L34 17" stroke="#C1652F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="23" y="35" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="30" fill="#C1652F" text-anchor="middle">C</text>
 </svg>

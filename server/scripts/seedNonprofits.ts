@@ -1,66 +1,15 @@
 // Seeds real, verifiable nonprofits (name, EIN, city/state pulled from the IRS registry via
 // ProPublica's Nonprofit Explorer API: https://projects.propublica.org/nonprofits/api) so the
-// browse page has real organizations instead of placeholder test data. Fund goals, expense line
-// items, and donation activity remain illustrative, this script does not move real money and
-// these orgs never signed up, hence organization.verified rather than a real admin account.
-import { randomUUID } from "node:crypto";
+// browse page has real organizations instead of placeholder test data. Fund goals and expense
+// line items are illustrative, these orgs never signed up, hence organization.verified rather
+// than a real admin account. Deliberately does NOT create any donations: nobody has actually
+// donated to these funds through Candor, so raised starts honest at $0. Run
+// `npm run simulate:donations` separately if you want fake donation activity for a demo.
 import { prisma } from "../src/lib/prisma.js";
-import { env } from "../src/config/env.js";
 import { createLogger } from "../src/lib/logger.js";
-import { stripe } from "../src/services/stripeService.js";
-import { ensureSystemUser, ensureDemoDonors } from "./demoData.js";
+import { ensureSystemUser } from "./demoData.js";
 
 const log = createLogger("seed-nonprofits");
-
-function pickRandom<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-// Expenses are seeded immediately, but "raised" only comes from real or simulated donations,
-// which trickle in slowly. Without this, a freshly seeded fund shows spent > raised, an
-// impossible state for an app whose whole pitch is an honest, accurate ledger. Tops a fund's
-// raised total up to comfortably clear its seeded expenses using the same real webhook path
-// scripts/simulateDonations.ts uses, attributed to the same clearly-marked demo donor pool.
-async function ensureFundClearsExpenses(fund: { id: string; name: string }, minimumCents: number, donorIds: string[]) {
-  const { _sum } = await prisma.donation.aggregate({
-    where: { fundId: fund.id, status: "SUCCEEDED" },
-    _sum: { amountCents: true },
-  });
-  let shortfallCents = minimumCents - (_sum.amountCents ?? 0);
-  if (shortfallCents <= 0) return;
-
-  while (shortfallCents > 0) {
-    const amountCents = Math.min(shortfallCents, 100_00);
-    const donorId = pickRandom(donorIds);
-    const sessionId = `cs_seed_${randomUUID()}`;
-
-    await prisma.donation.create({
-      data: { fundId: fund.id, donorUserId: donorId, amountCents, status: "PENDING", stripeCheckoutSessionId: sessionId },
-    });
-
-    const payload = JSON.stringify({
-      id: `evt_seed_${randomUUID()}`,
-      type: "checkout.session.completed",
-      data: { object: { id: sessionId, payment_intent: `pi_seed_${randomUUID()}` } },
-    });
-    const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: env.STRIPE_WEBHOOK_SECRET });
-
-    const res = await fetch(`${env.API_ORIGIN}/api/webhooks/stripe`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "stripe-signature": signature },
-      body: payload,
-    });
-
-    if (!res.ok) {
-      log.warn({ status: res.status, fund: fund.name }, "seed top-up donation webhook was rejected, is the API server running?");
-      return;
-    }
-
-    shortfallCents -= amountCents;
-  }
-
-  log.info({ fund: fund.name, minimumCents }, "topped up seed donations so raised clears spent");
-}
 
 function slugify(text: string): string {
   return text
@@ -537,8 +486,6 @@ const NONPROFITS: SeedOrg[] = [
 
 async function main() {
   const systemUser = await ensureSystemUser();
-  const donors = await ensureDemoDonors();
-  const donorIds = donors.map((d) => d.id);
 
   for (const org of NONPROFITS) {
     const orgSlug = slugify(org.name);
@@ -586,9 +533,6 @@ async function main() {
         data: org.expenses.map((e) => ({ ...e, fundId: fund.id, createdByUserId: systemUser.id })),
       });
     }
-
-    const totalExpenseCents = org.expenses.reduce((sum, e) => sum + e.amountCents, 0);
-    await ensureFundClearsExpenses(fund, totalExpenseCents + 50_00, donorIds);
 
     log.info({ org: org.name, city: org.city, state: org.state, ein: org.ein }, "seeded verified nonprofit");
   }

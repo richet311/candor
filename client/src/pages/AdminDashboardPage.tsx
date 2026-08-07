@@ -79,7 +79,7 @@ export function AdminDashboardPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Admin dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Nonprofit dashboard</h1>
           <p className="text-sm text-[var(--color-ink-soft)]">{formatCents(totalRaised)} raised · {formatCents(totalSpent)} spent across {funds.length} funds</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>New fund</Button>

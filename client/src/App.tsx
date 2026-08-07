@@ -18,6 +18,7 @@ import { OAuthCompletePage } from "./pages/OAuthCompletePage";
 import { TermsPage } from "./pages/TermsPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { ImpactPage } from "./pages/ImpactPage";
 
 export function App() {
   return (
@@ -30,6 +31,7 @@ export function App() {
           <Route path="/funds/:slug" element={<FundDetailPage />} />
           <Route path="/organizations" element={<OrganizationsPage />} />
           <Route path="/organizations/:slug" element={<OrganizationDetailPage />} />
+          <Route path="/impact" element={<ImpactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/donate/success" element={<DonateSuccessPage />} />

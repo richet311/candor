@@ -22,6 +22,9 @@ export function Footer() {
           <Link to="/organizations" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
             Nonprofits
           </Link>
+          <Link to="/impact" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
+            Impact
+          </Link>
           <Link to="/register" className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)]">
             Register a nonprofit
           </Link>

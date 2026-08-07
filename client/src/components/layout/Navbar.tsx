@@ -30,6 +30,9 @@ export function Navbar() {
           <Link to="/organizations" className={NAV_LINK}>
             Nonprofits
           </Link>
+          <Link to="/impact" className={NAV_LINK}>
+            Impact
+          </Link>
 
           {!user && (
             <>

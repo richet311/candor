@@ -55,7 +55,11 @@ function setRefreshCookie(res: Response, token: string) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax",
+    // In production the client and API are deployed on different registrable domains
+    // (e.g. Cloudflare Pages + Render), so the cookie is genuinely cross-site and needs
+    // SameSite=None to be sent at all; that requires Secure, which isProd already sets.
+    // Locally both run on localhost, where Lax is the safer default and works the same.
+    sameSite: isProd ? "none" : "lax",
     path: "/api/auth",
     maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
   });

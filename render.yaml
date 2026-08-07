@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: candor-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run prisma:generate && npm run build
+    startCommand: npm run prisma:deploy && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Point this at a Neon (neon.tech) connection string rather than Render's own
+      # free Postgres: Render's free databases expire after 30 days and get deleted,
+      # Neon's free tier doesn't expire. Use the "pooled connection" string from Neon.
+      - key: DATABASE_URL
+        sync: false
+      # Set this to the deployed client URL once you know it (e.g. your Cloudflare
+      # Pages domain), then redeploy. CORS and the OAuth redirect both depend on it.
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # Fill in from dashboard.stripe.com/test/apikeys and your webhook endpoint's
+      # signing secret. Required even in test mode, nothing here touches real money.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Optional sign-in providers. Leave unset and the app runs fine on
+      # email/password alone, GET /api/auth/oauth/providers reports what's configured.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      # Optional. Without it, verification/receipt emails are logged instead of sent.
+      - key: RESEND_API_KEY
+        sync: false

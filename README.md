@@ -241,3 +241,48 @@ OAuth App**. Homepage URL `http://localhost:5173`, Authorization callback
 URL `http://localhost:4000/api/auth/oauth/github/callback`. Set
 `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` in `server/.env`. Nothing goes
 in the client env.
+
+## Deploying
+
+Client, API, and database are deployed separately: Cloudflare Pages, Render,
+and Neon. `render.yaml` in the repo root is a Render Blueprint that defines
+the API service; Cloudflare Pages is configured through its dashboard, no
+extra file needed.
+
+### 1. Database (Neon)
+
+Create a free project at [neon.tech](https://neon.tech). Copy the pooled
+connection string, it becomes `DATABASE_URL`. Render also offers a free
+Postgres instance, but it expires 30 days after creation and gets deleted;
+Neon's free tier doesn't expire, so it's the better fit for something meant
+to stay up.
+
+### 2. API (Render)
+
+Push this repo to GitHub, then in Render: **New** → **Blueprint**, point it
+at the repo. It reads `render.yaml` and creates the `candor-api` web
+service. Fill in the env vars marked `sync: false` in the Render dashboard:
+`DATABASE_URL` (from Neon), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+and the OAuth ones if you're using them. `JWT_ACCESS_SECRET` and
+`JWT_REFRESH_SECRET` are generated for you. Migrations run automatically on
+every deploy (`prisma migrate deploy` is in the start command). Free-tier
+services sleep after ~15 minutes idle; the first request after that takes
+30-50s to cold start.
+
+### 3. Client (Cloudflare Pages)
+
+Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** →
+connect the same GitHub repo. Root directory `client`, build command
+`npm run build`, output directory `dist`. Add env var `VITE_API_URL` set to
+your Render service's URL plus `/api`. `client/public/_redirects` is
+already in the repo so client-side routes don't 404 on a hard refresh.
+
+### 4. Wire them together
+
+Once you have the Pages URL, set `CLIENT_ORIGIN` on Render to that exact
+origin and redeploy the API, CORS and the OAuth redirect both check it. If
+you're using Google or GitHub sign-in, add the new domains to those
+providers' dashboards too. For the Stripe webhook, add an endpoint in the
+Stripe dashboard (test mode) pointing at
+`https://<your-api>.onrender.com/api/webhooks/stripe`, then copy its
+signing secret into `STRIPE_WEBHOOK_SECRET` on Render.

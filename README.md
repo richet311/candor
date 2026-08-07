@@ -90,6 +90,10 @@ is checked before any donation is marked paid. See
   user actually sees, and a scoped console log (`[candor:<module>]`)
   for whoever's debugging it. See `lib/logger.ts` and
   `context/ToastContext.tsx`.
+- **Demo data**: eight real, verified nonprofits (see "Demo data" below)
+  show a green "Verified nonprofit" badge that links back to their IRS
+  registry entry; the donation activity on those funds is clearly labeled
+  as simulated.
 
 ## Security
 
@@ -166,11 +170,21 @@ cd server
 npm test
 ```
 
-Runs against a real Postgres database (the one from `docker compose up -d
-db`), not a mock, including a genuine Stripe webhook signature check via
-`stripe.webhooks.generateTestHeaderString`, so the test proves the
-verification logic actually works rather than asserting a mocked function
-was called.
+Runs against a real Postgres database, not a mock, including a genuine
+Stripe webhook signature check via `stripe.webhooks.generateTestHeaderString`,
+so the test proves the verification logic actually works rather than
+asserting a mocked function was called. Tests truncate tables between runs
+(`__tests__/helpers.ts`), so they run against a separate `candor_test`
+database on the same Postgres instance rather than the one the dev server
+reads from; `env.ts` swaps to it automatically whenever `NODE_ENV=test`.
+`docker compose up -d db` creates it automatically on a fresh volume via
+`docker/init-test-db.sql`; if you already had the `db` container running
+before pulling this, create it once with:
+
+```bash
+docker exec candor-db-1 psql -U candor -d candor -c "CREATE DATABASE candor_test OWNER candor;"
+cd server && DATABASE_URL="postgresql://candor:candor_dev_only@localhost:5433/candor_test" npm run prisma:deploy
+```
 
 ## Stripe webhooks locally
 
@@ -179,6 +193,28 @@ stripe listen --forward-to localhost:4000/api/webhooks/stripe
 ```
 
 Copy the printed signing secret into `server/.env` as `STRIPE_WEBHOOK_SECRET`.
+
+## Demo data: real nonprofits, simulated activity
+
+```bash
+cd server
+npm run seed:nonprofits      # one-time, idempotent
+npm run simulate:donations   # requires the API server already running
+```
+
+`seed:nonprofits` pulls real name, EIN, city, and state for eight well-known
+nonprofits from the IRS registry via [ProPublica's Nonprofit Explorer
+API](https://projects.propublica.org/nonprofits/api) and creates a verified
+`Organization` and starter `Fund` for each, so `/funds` shows real
+organizations instead of placeholder test data. It's idempotent, safe to
+rerun.
+
+`simulate:donations` builds a real `checkout.session.completed` event, signs
+it with the actual webhook secret, and POSTs it to the running server's own
+`/api/webhooks/stripe` route on a random interval, the same path a real
+Stripe donation takes. No money moves and no real donor is involved; every
+verified organization's page says so directly. Pass `--once` for a single
+donation instead of a continuous loop.
 
 ## Sign-in providers
 

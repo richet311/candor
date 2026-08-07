@@ -29,3 +29,10 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export const isProd = env.NODE_ENV === "production";
+
+// Tests truncate tables between runs (see __tests__/helpers.ts), so they need their own
+// database, otherwise `npm test` wipes out whatever real data the dev server was serving.
+if (env.NODE_ENV === "test") {
+  env.DATABASE_URL = env.DATABASE_URL.replace(/\/([a-zA-Z0-9_-]+)(\?.*)?$/, "/$1_test$2");
+  process.env.DATABASE_URL = env.DATABASE_URL;
+}

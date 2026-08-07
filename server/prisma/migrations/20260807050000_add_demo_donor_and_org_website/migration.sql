@@ -1,0 +1,2 @@
+ALTER TABLE "User" ADD COLUMN "isDemoDonor" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Organization" ADD COLUMN "websiteUrl" TEXT;

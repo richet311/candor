@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { validateQuery } from "../middleware/validate.js";
+import { validateBody, validateQuery } from "../middleware/validate.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import * as ownerService from "../services/ownerService.js";
 
@@ -17,6 +17,10 @@ const listQuerySchema = z.object({
 
 const listUsersQuerySchema = listQuerySchema.extend({
   role: z.enum(["ADMIN", "DONOR", "OWNER"]).optional(),
+});
+
+const rejectVerificationSchema = z.object({
+  reason: z.string().trim().min(3).max(500),
 });
 
 router.get(
@@ -71,6 +75,30 @@ router.delete(
   asyncHandler(async (req, res) => {
     await ownerService.deleteFund(req.params.id, { id: req.user!.sub, ipAddress: req.ip });
     res.status(204).send();
+  }),
+);
+
+router.get(
+  "/verification-requests",
+  asyncHandler(async (_req, res) => {
+    res.json({ requests: await ownerService.listVerificationRequests() });
+  }),
+);
+
+router.post(
+  "/verification-requests/:id/approve",
+  asyncHandler(async (req, res) => {
+    const organization = await ownerService.approveVerification(req.params.id, { id: req.user!.sub, ipAddress: req.ip });
+    res.json({ organization });
+  }),
+);
+
+router.post(
+  "/verification-requests/:id/reject",
+  validateBody(rejectVerificationSchema),
+  asyncHandler(async (req, res) => {
+    const organization = await ownerService.rejectVerification(req.params.id, req.body.reason, { id: req.user!.sub, ipAddress: req.ip });
+    res.json({ organization });
   }),
 );
 

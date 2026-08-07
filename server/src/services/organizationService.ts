@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { recordAuditEvent } from "./auditService.js";
 import { AuditAction } from "../types/audit.js";
-import { NotFoundError } from "../utils/AppError.js";
+import { ConflictError, NotFoundError } from "../utils/AppError.js";
 
 export async function getMyOrganization(organizationId: string) {
   const org = await prisma.organization.findUnique({ where: { id: organizationId } });
@@ -109,6 +109,36 @@ export async function getPublicOrganization(slug: string) {
     raisedCents: funds.reduce((sum, f) => sum + f.raisedCents, 0),
     funds,
   };
+}
+
+export async function requestVerification(
+  organizationId: string,
+  input: { ein: string },
+  meta: { ipAddress?: string | null; actorUserId: string },
+) {
+  const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+  if (!org) throw new NotFoundError("Organization not found");
+  if (org.verificationStatus === "VERIFIED") throw new ConflictError("This organization is already verified");
+  if (org.verificationStatus === "PENDING") throw new ConflictError("A verification request is already pending review");
+
+  const einTaken = await prisma.organization.findUnique({ where: { ein: input.ein } });
+  if (einTaken && einTaken.id !== organizationId) throw new ConflictError("This EIN is already associated with another organization");
+
+  const updated = await prisma.organization.update({
+    where: { id: organizationId },
+    data: { ein: input.ein, verificationStatus: "PENDING", verificationRequestedAt: new Date(), verificationRejectionReason: null },
+  });
+
+  await recordAuditEvent({
+    actorUserId: meta.actorUserId,
+    action: AuditAction.ORG_VERIFICATION_REQUESTED,
+    targetType: "Organization",
+    targetId: organizationId,
+    metadata: { ein: input.ein },
+    ipAddress: meta.ipAddress,
+  });
+
+  return updated;
 }
 
 export async function updateOrgProfile(

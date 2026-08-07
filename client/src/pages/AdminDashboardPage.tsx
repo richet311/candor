@@ -9,7 +9,9 @@ import { ProgressBar } from "../components/ui/ProgressBar";
 import { OrgAvatar } from "../components/OrgAvatar";
 import { CreateFundModal } from "../components/admin/CreateFundModal";
 import { LogExpenseModal } from "../components/admin/LogExpenseModal";
+import { PostFundUpdateModal } from "../components/admin/PostFundUpdateModal";
 import { EditOrgModal } from "../components/admin/EditOrgModal";
+import { VerificationStatusCard } from "../components/admin/VerificationStatusCard";
 import { AuditLogTable } from "../components/admin/AuditLogTable";
 import { apiFetch, ApiError } from "../lib/api";
 import { createLogger } from "../lib/logger";
@@ -26,6 +28,7 @@ export function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [expenseTarget, setExpenseTarget] = useState<Fund | null>(null);
+  const [updateTarget, setUpdateTarget] = useState<Fund | null>(null);
   const [isEditingOrg, setIsEditingOrg] = useState(false);
   const toast = useToast();
 
@@ -77,6 +80,8 @@ export function AdminDashboardPage() {
         </Card>
       )}
 
+      {org && <VerificationStatusCard org={org} onUpdated={() => void load()} />}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">Nonprofit dashboard</h1>
@@ -105,9 +110,14 @@ export function AdminDashboardPage() {
                   <span className="text-[var(--color-ink-soft)]">{formatCents(fund.spentCents)} spent</span>
                 </div>
                 <ProgressBar raisedCents={fund.raisedCents} goalCents={fund.goalCents} />
-                <Button variant="ghost" onClick={() => setExpenseTarget(fund)} className="w-fit">
-                  Log expense
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setExpenseTarget(fund)} className="w-fit">
+                    Log expense
+                  </Button>
+                  <Button variant="ghost" onClick={() => setUpdateTarget(fund)} className="w-fit">
+                    Post update
+                  </Button>
+                </div>
               </CardBody>
             </Card>
           ))}
@@ -130,6 +140,14 @@ export function AdminDashboardPage() {
           fundName={expenseTarget.name}
           onClose={() => setExpenseTarget(null)}
           onLogged={() => void load()}
+        />
+      )}
+      {updateTarget && (
+        <PostFundUpdateModal
+          fundId={updateTarget.id}
+          fundName={updateTarget.name}
+          onClose={() => setUpdateTarget(null)}
+          onPosted={() => void load()}
         />
       )}
       {isEditingOrg && org && (

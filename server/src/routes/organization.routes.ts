@@ -21,6 +21,10 @@ const listOrgsQuerySchema = z.object({
   cause: z.string().trim().max(60).optional(),
 });
 
+const verificationRequestSchema = z.object({
+  ein: z.string().trim().regex(/^\d{2}-?\d{7}$/, "EIN must be in the format 12-3456789"),
+});
+
 router.get(
   "/",
   validateQuery(listOrgsQuerySchema),
@@ -59,6 +63,24 @@ router.patch(
         logoUrl: req.body.logoUrl === undefined ? undefined : req.body.logoUrl || null,
         websiteUrl: req.body.websiteUrl === undefined ? undefined : req.body.websiteUrl || null,
       },
+      { ipAddress: req.ip, actorUserId: req.user!.sub },
+    );
+
+    res.json({ organization });
+  }),
+);
+
+router.post(
+  "/me/verification-request",
+  requireAuth,
+  requireRole("ADMIN"),
+  validateBody(verificationRequestSchema),
+  asyncHandler(async (req, res) => {
+    if (!req.user!.organizationId) throw new ForbiddenError("No organization associated with this account");
+
+    const organization = await organizationService.requestVerification(
+      req.user!.organizationId,
+      { ein: req.body.ein },
       { ipAddress: req.ip, actorUserId: req.user!.sub },
     );
 

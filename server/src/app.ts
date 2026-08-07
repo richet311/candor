@@ -10,11 +10,13 @@ import authRouter from "./routes/auth.routes.js";
 import organizationRouter from "./routes/organization.routes.js";
 import fundRouter from "./routes/fund.routes.js";
 import expenseRouter from "./routes/expense.routes.js";
+import fundUpdateRouter from "./routes/fundUpdate.routes.js";
 import donationRouter from "./routes/donation.routes.js";
 import webhookRouter from "./routes/webhook.routes.js";
 import auditRouter from "./routes/audit.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
 import ownerRouter from "./routes/owner.routes.js";
+import statsRouter from "./routes/stats.routes.js";
 import { UPLOADS_DIR } from "./lib/uploadsDir.js";
 
 export function createApp() {
@@ -43,10 +45,12 @@ export function createApp() {
   app.use("/api/organizations", organizationRouter);
   app.use("/api/funds", fundRouter);
   app.use("/api/expenses", expenseRouter);
+  app.use("/api/fund-updates", fundUpdateRouter);
   app.use("/api/donations", donationRouter);
   app.use("/api/audit-log", auditRouter);
   app.use("/api/uploads", uploadRouter);
   app.use("/api/owner", ownerRouter);
+  app.use("/api/stats", statsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

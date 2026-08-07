@@ -64,6 +64,7 @@ export async function getFundDetail(slug: string) {
         select: { id: true, amountCents: true, createdAt: true, isAnonymous: true, donor: { select: { name: true, isDemoDonor: true } } },
       },
       expenses: { orderBy: { createdAt: "desc" }, select: { id: true, category: true, description: true, amountCents: true, createdAt: true } },
+      updates: { orderBy: { createdAt: "desc" }, select: { id: true, body: true, createdAt: true } },
     },
   });
 
@@ -103,6 +104,7 @@ export async function getFundDetail(slug: string) {
     spentCents,
     expensesByCategory: Array.from(byCategory.entries()).map(([category, amountCents]) => ({ category, amountCents })),
     activity: activity.slice(0, 25),
+    updates: fund.updates,
   };
 }
 

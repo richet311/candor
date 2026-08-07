@@ -11,6 +11,8 @@ export interface User {
   emailVerified: boolean;
 }
 
+export type VerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+
 export interface OrgProfile {
   id: string;
   name: string;
@@ -20,6 +22,9 @@ export interface OrgProfile {
   sourceUrl: string | null;
   websiteUrl: string | null;
   verified: boolean;
+  verificationStatus: VerificationStatus;
+  verificationRequestedAt: string | null;
+  verificationRejectionReason: string | null;
   bannerUrl: string | null;
   logoUrl: string | null;
 }
@@ -55,9 +60,16 @@ export type FundActivityEntry =
   | { type: "donation"; id: string; amountCents: number; createdAt: string; isAnonymous: boolean; donorName: string | null }
   | { type: "expense"; id: string; amountCents: number; category: string; description: string; createdAt: string };
 
+export interface FundUpdateEntry {
+  id: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface FundDetail extends Fund {
   expensesByCategory: ExpenseCategoryTotal[];
   activity: FundActivityEntry[];
+  updates: FundUpdateEntry[];
 }
 
 export interface Donation {
@@ -162,4 +174,24 @@ export interface OwnerFundRow {
   donationCount: number;
   expenseCount: number;
   createdAt: string;
+}
+
+export interface VerificationRequest {
+  id: string;
+  name: string;
+  slug: string;
+  ein: string | null;
+  websiteUrl: string | null;
+  description: string | null;
+  verificationRequestedAt: string;
+}
+
+export interface PlatformImpactStats {
+  organizationCount: number;
+  fundCount: number;
+  totalRaisedCents: number;
+  totalDonationCount: number;
+  totalSpentCents: number;
+  byCategory: { category: string; amountCents: number }[];
+  topFunds: { id: string; slug: string; name: string; organizationName: string; raisedCents: number }[];
 }

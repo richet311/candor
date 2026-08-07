@@ -25,6 +25,13 @@ enum OAuthProvider {
   GITHUB
 }
 
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 model User {
   id                  String        @id @default(uuid())
   email               String        @unique
@@ -47,6 +54,7 @@ model User {
   expenses      Expense[]
   donations     Donation[]
   auditLogs     AuditLog[]
+  fundUpdates   FundUpdate[]
 
   @@index([organizationId])
 }
@@ -79,85 +87,101 @@ model RefreshToken {
 }
 
 model Organization {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  description String?
-  ein         String?  @unique
-  sourceUrl   String?
-  websiteUrl  String?
-  verified    Boolean  @default(false)
-  bannerUrl   String?
-  logoUrl     String?
-  createdAt   DateTime @default(now())
+  id                          String             @id @default(uuid())
+  name                        String
+  slug                        String             @unique
+  description                 String?
+  ein                         String?            @unique
+  sourceUrl                   String?
+  websiteUrl                  String?
+  verified                    Boolean            @default(false)
+  verificationStatus          VerificationStatus @default(UNVERIFIED)
+  verificationRequestedAt     DateTime?
+  verificationRejectionReason String?
+  bannerUrl                   String?
+  logoUrl                     String?
+  createdAt                   DateTime           @default(now())
 
   members User[]
   funds   Fund[]
 }
 
 model Fund {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
-  slug           String   @unique
+  slug           String       @unique
   description    String
   category       String
   goalCents      Int
   coverImageUrl  String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   expenses  Expense[]
   donations Donation[]
+  updates   FundUpdate[]
 
   @@index([organizationId])
 }
 
+model FundUpdate {
+  id           String   @id @default(uuid())
+  fundId       String
+  fund         Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  authorUserId String
+  author       User     @relation(fields: [authorUserId], references: [id])
+  body         String
+  createdAt    DateTime @default(now())
+
+  @@index([fundId])
+}
+
 model Expense {
-  id            String   @id @default(uuid())
-  fundId        String
-  fund          Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
-  category      String
-  description   String
-  amountCents   Int
+  id              String   @id @default(uuid())
+  fundId          String
+  fund            Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  category        String
+  description     String
+  amountCents     Int
   createdByUserId String
-  createdBy     User     @relation(fields: [createdByUserId], references: [id])
-  createdAt     DateTime @default(now())
+  createdBy       User     @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime @default(now())
 
   @@index([fundId])
 }
 
 model Donation {
-  id                    String         @id @default(uuid())
-  fundId                String
-  fund                  Fund           @relation(fields: [fundId], references: [id], onDelete: Cascade)
-  donorUserId           String
-  donor                 User           @relation(fields: [donorUserId], references: [id])
-  amountCents           Int
-  currency              String         @default("usd")
-  status                DonationStatus @default(PENDING)
-  isAnonymous           Boolean        @default(false)
-  stripeCheckoutSessionId String       @unique
-  stripePaymentIntentId  String?
-  createdAt             DateTime       @default(now())
-  updatedAt              DateTime      @updatedAt
+  id                      String         @id @default(uuid())
+  fundId                  String
+  fund                    Fund           @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  donorUserId             String
+  donor                   User           @relation(fields: [donorUserId], references: [id])
+  amountCents             Int
+  currency                String         @default("usd")
+  status                  DonationStatus @default(PENDING)
+  isAnonymous             Boolean        @default(false)
+  stripeCheckoutSessionId String         @unique
+  stripePaymentIntentId   String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 
   @@index([fundId])
   @@index([donorUserId])
 }
 
 model AuditLog {
-  id           String   @id @default(uuid())
-  actorUserId  String?
-  actor        User?    @relation(fields: [actorUserId], references: [id])
-  action       String
-  targetType   String?
-  targetId     String?
-  metadata     Json?
-  ipAddress    String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  actorUserId String?
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+  action      String
+  targetType  String?
+  targetId    String?
+  metadata    Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
 
   @@index([actorUserId])
   @@index([action])

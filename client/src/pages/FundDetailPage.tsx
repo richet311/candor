@@ -145,6 +145,24 @@ export function FundDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-6">
+          {fund.updates.length > 0 && (
+            <Card>
+              <CardHeader>
+                <h2 className="text-sm font-semibold text-[var(--color-ink)]">Updates</h2>
+              </CardHeader>
+              <CardBody className="flex flex-col gap-5">
+                {fund.updates.map((update) => (
+                  <div key={update.id} className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-[var(--color-ink-soft)]">
+                      {new Date(update.createdAt).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}
+                    </span>
+                    <p className="whitespace-pre-line text-sm text-[var(--color-ink)]">{update.body}</p>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
           {fund.expensesByCategory.length > 0 && (
             <Card>
               <CardHeader>

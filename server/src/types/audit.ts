@@ -24,6 +24,10 @@ export const AuditAction = {
   OWNER_DELETED_USER: "owner.deleted_user",
   OWNER_DELETED_ORGANIZATION: "owner.deleted_organization",
   OWNER_DELETED_FUND: "owner.deleted_fund",
+  ORG_VERIFICATION_REQUESTED: "org.verification_requested",
+  ORG_VERIFICATION_APPROVED: "org.verification_approved",
+  ORG_VERIFICATION_REJECTED: "org.verification_rejected",
+  FUND_UPDATE_POSTED: "fund.update_posted",
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];

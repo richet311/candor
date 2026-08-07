@@ -230,3 +230,66 @@ export async function deleteFund(fundId: string, actor: ActorMeta) {
     ipAddress: actor.ipAddress,
   });
 }
+
+export async function listVerificationRequests() {
+  return prisma.organization.findMany({
+    where: { verificationStatus: "PENDING" },
+    orderBy: { verificationRequestedAt: "asc" },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      ein: true,
+      websiteUrl: true,
+      description: true,
+      verificationRequestedAt: true,
+    },
+  });
+}
+
+export async function approveVerification(orgId: string, actor: ActorMeta) {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw new NotFoundError("Organization not found");
+  if (org.verificationStatus !== "PENDING") throw new ConflictError("This organization has no pending verification request");
+
+  const updated = await prisma.organization.update({
+    where: { id: orgId },
+    data: {
+      verified: true,
+      verificationStatus: "VERIFIED",
+      sourceUrl: org.ein ? `https://projects.propublica.org/nonprofits/organizations/${org.ein}` : org.sourceUrl,
+    },
+  });
+
+  await recordAuditEvent({
+    actorUserId: actor.id,
+    action: AuditAction.ORG_VERIFICATION_APPROVED,
+    targetType: "Organization",
+    targetId: orgId,
+    ipAddress: actor.ipAddress,
+  });
+
+  return updated;
+}
+
+export async function rejectVerification(orgId: string, reason: string, actor: ActorMeta) {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw new NotFoundError("Organization not found");
+  if (org.verificationStatus !== "PENDING") throw new ConflictError("This organization has no pending verification request");
+
+  const updated = await prisma.organization.update({
+    where: { id: orgId },
+    data: { verificationStatus: "REJECTED", verificationRejectionReason: reason },
+  });
+
+  await recordAuditEvent({
+    actorUserId: actor.id,
+    action: AuditAction.ORG_VERIFICATION_REJECTED,
+    targetType: "Organization",
+    targetId: orgId,
+    metadata: { reason },
+    ipAddress: actor.ipAddress,
+  });
+
+  return updated;
+}

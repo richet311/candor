@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { PageContainer } from "../components/layout/PageContainer";
 import { Card, CardBody } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
 import { Spinner } from "../components/ui/Spinner";
 import { Pagination } from "../components/ui/Pagination";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
@@ -9,10 +11,10 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { apiFetch, ApiError } from "../lib/api";
 import { useToast } from "../context/ToastContext";
 import { formatCents } from "../lib/money";
-import type { PlatformStats, OwnerUserRow, OwnerOrganizationRow, OwnerFundRow } from "../lib/types";
+import type { PlatformStats, OwnerUserRow, OwnerOrganizationRow, OwnerFundRow, VerificationRequest } from "../lib/types";
 
 const LIMIT = 15;
-const TABS = ["Users", "Organizations", "Funds"] as const;
+const TABS = ["Users", "Organizations", "Funds", "Verification"] as const;
 type Tab = (typeof TABS)[number];
 
 function useDebouncedValue(value: string, delayMs: number) {
@@ -89,6 +91,7 @@ export function OwnerDashboardPage() {
       {tab === "Users" && <UsersTab onMutated={loadStats} />}
       {tab === "Organizations" && <OrganizationsTab onMutated={loadStats} />}
       {tab === "Funds" && <FundsTab onMutated={loadStats} />}
+      {tab === "Verification" && <VerificationTab onMutated={loadStats} />}
     </PageContainer>
   );
 }
@@ -447,5 +450,160 @@ function FundsTab({ onMutated }: { onMutated: () => void }) {
         />
       )}
     </div>
+  );
+}
+
+function VerificationTab({ onMutated }: { onMutated: () => void }) {
+  const [requests, setRequests] = useState<VerificationRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pendingApprove, setPendingApprove] = useState<VerificationRequest | null>(null);
+  const [pendingReject, setPendingReject] = useState<VerificationRequest | null>(null);
+  const toast = useToast();
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiFetch<{ requests: VerificationRequest[] }>("/owner/verification-requests");
+      setRequests(data.requests);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not load verification requests";
+      toast.error(message, err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function handleApprove() {
+    if (!pendingApprove) return;
+    try {
+      await apiFetch(`/owner/verification-requests/${pendingApprove.id}/approve`, { method: "POST" });
+      toast.success(`${pendingApprove.name} approved`);
+      setPendingApprove(null);
+      void load();
+      onMutated();
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not approve this request";
+      toast.error(message, err);
+      throw err;
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {isLoading && <Spinner label="Loading verification requests" />}
+      {!isLoading && requests.length === 0 && (
+        <EmptyState title="No pending requests" description="Verification requests submitted by organizations will show up here." />
+      )}
+      {!isLoading && requests.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {requests.map((r) => (
+            <Card key={r.id}>
+              <CardBody className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium text-[var(--color-ink)]">{r.name}</span>
+                  <span className="text-xs text-[var(--color-ink-soft)]">
+                    EIN {r.ein} · requested {new Date(r.verificationRequestedAt).toLocaleDateString()}
+                  </span>
+                  {r.websiteUrl && (
+                    <a href={r.websiteUrl} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">
+                      {r.websiteUrl}
+                    </a>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setPendingReject(r)}>
+                    Reject
+                  </Button>
+                  <Button onClick={() => setPendingApprove(r)}>Approve</Button>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      )}
+      {pendingApprove && (
+        <ConfirmModal
+          title="Approve this organization?"
+          message={`${pendingApprove.name} will get a verified badge, checked against EIN ${pendingApprove.ein}.`}
+          confirmLabel="Approve"
+          onConfirm={handleApprove}
+          onCancel={() => setPendingApprove(null)}
+        />
+      )}
+      {pendingReject && (
+        <RejectVerificationModal
+          request={pendingReject}
+          onClose={() => setPendingReject(null)}
+          onRejected={() => {
+            void load();
+            onMutated();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RejectVerificationModal({
+  request,
+  onClose,
+  onRejected,
+}: {
+  request: VerificationRequest;
+  onClose: () => void;
+  onRejected: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await apiFetch(`/owner/verification-requests/${request.id}/reject`, { method: "POST", body: JSON.stringify({ reason }) });
+      toast.success(`${request.name} rejected`);
+      onRejected();
+      onClose();
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Could not reject this request";
+      toast.error(message, err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Modal title={`Reject verification for ${request.name}`} onClose={onClose}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="reject-reason" className="text-sm font-medium text-[var(--color-ink)]">
+            Reason
+            <span className="text-[var(--color-danger)]" aria-hidden="true">
+              {" "}
+              *
+            </span>
+          </label>
+          <textarea
+            id="reject-reason"
+            required
+            minLength={3}
+            maxLength={500}
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="rounded-xl border border-[var(--color-border)] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-[var(--color-navy)] focus:ring-2 focus:ring-[var(--color-navy)]/10"
+          />
+          <p className="text-xs text-[var(--color-ink-soft)]">Shown to the organization so they know what to fix before resubmitting.</p>
+        </div>
+        <Button type="submit" variant="danger" isLoading={isSubmitting} className="w-full">
+          Reject
+        </Button>
+      </form>
+    </Modal>
   );
 }

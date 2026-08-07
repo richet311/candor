@@ -18,6 +18,8 @@ export function GoogleSignInButton({ onCredential }: { onCredential: (idToken: s
       return;
     }
 
+    const container = containerRef.current;
+
     window.google.accounts.id.initialize({
       client_id: CLIENT_ID,
       callback: (response) => {
@@ -26,13 +28,26 @@ export function GoogleSignInButton({ onCredential }: { onCredential: (idToken: s
       },
     });
 
-    window.google.accounts.id.renderButton(containerRef.current, {
-      theme: "outline",
-      size: "large",
-      width: containerRef.current.offsetWidth,
-      text: "continue_with",
-      shape: "pill",
-    });
+    // Google's widget takes a fixed pixel width rather than sizing itself to its container, so
+    // it has to be re-rendered whenever the container's own width changes to stay in sync with
+    // the full-width GitHub button next to it, instead of drifting out of alignment on resize.
+    function renderButton() {
+      if (!container || container.offsetWidth === 0) return;
+      container.replaceChildren();
+      window.google!.accounts.id.renderButton(container, {
+        theme: "outline",
+        size: "large",
+        width: container.offsetWidth,
+        text: "continue_with",
+        shape: "pill",
+        logo_alignment: "center",
+      });
+    }
+
+    renderButton();
+    const observer = new ResizeObserver(() => renderButton());
+    observer.observe(container);
+    return () => observer.disconnect();
   }, [onCredential]);
 
   if (!CLIENT_ID) return null;

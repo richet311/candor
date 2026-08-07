@@ -15,6 +15,7 @@ interface GoogleButtonOptions {
   width?: number;
   text?: "signin_with" | "signup_with" | "continue_with";
   shape?: "rectangular" | "pill" | "circle" | "square";
+  logo_alignment?: "left" | "center";
 }
 
 declare global {

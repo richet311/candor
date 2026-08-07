@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
+import { ConfirmModal } from "../ui/ConfirmModal";
 import { UserAvatar } from "../UserAvatar";
 import { Logo } from "../Logo";
 
@@ -10,9 +12,11 @@ const NAV_GHOST = "border-white/25 text-white hover:bg-white/10";
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isConfirmingLogout, setIsConfirmingLogout] = useState(false);
 
   async function handleLogout() {
     await logout();
+    setIsConfirmingLogout(false);
     navigate("/");
   }
 
@@ -51,7 +55,7 @@ export function Navbar() {
                 <UserAvatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
                 My donations
               </Link>
-              <Button variant="ghost" onClick={handleLogout} className={NAV_GHOST}>
+              <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
             </>
@@ -62,7 +66,7 @@ export function Navbar() {
               <Link to="/admin" className={NAV_LINK}>
                 Nonprofit dashboard
               </Link>
-              <Button variant="ghost" onClick={handleLogout} className={NAV_GHOST}>
+              <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
             </>
@@ -73,13 +77,24 @@ export function Navbar() {
               <Link to="/owner" className={NAV_LINK}>
                 Owner dashboard
               </Link>
-              <Button variant="ghost" onClick={handleLogout} className={NAV_GHOST}>
+              <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
             </>
           )}
         </nav>
       </div>
+
+      {isConfirmingLogout && (
+        <ConfirmModal
+          title="Log out?"
+          message="You'll need to log back in to access your account."
+          confirmLabel="Log out"
+          confirmVariant="primary"
+          onConfirm={handleLogout}
+          onCancel={() => setIsConfirmingLogout(false)}
+        />
+      )}
     </header>
   );
 }

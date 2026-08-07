@@ -6,12 +6,14 @@ export function ConfirmModal({
   title,
   message,
   confirmLabel = "Delete",
+  confirmVariant = "danger",
   onConfirm,
   onCancel,
 }: {
   title: string;
   message: string;
   confirmLabel?: string;
+  confirmVariant?: "danger" | "primary";
   onConfirm: () => Promise<void>;
   onCancel: () => void;
 }) {
@@ -34,7 +36,7 @@ export function ConfirmModal({
           <Button type="button" variant="ghost" onClick={onCancel} className="flex-1" disabled={isConfirming}>
             Cancel
           </Button>
-          <Button type="button" variant="danger" onClick={handleConfirm} isLoading={isConfirming} className="flex-1">
+          <Button type="button" variant={confirmVariant} onClick={handleConfirm} isLoading={isConfirming} className="flex-1">
             {confirmLabel}
           </Button>
         </div>

@@ -530,6 +530,7 @@ function VerificationTab({ onMutated }: { onMutated: () => void }) {
           title="Approve this organization?"
           message={`${pendingApprove.name} will get a verified badge, checked against EIN ${pendingApprove.ein}.`}
           confirmLabel="Approve"
+          confirmVariant="primary"
           onConfirm={handleApprove}
           onCancel={() => setPendingApprove(null)}
         />

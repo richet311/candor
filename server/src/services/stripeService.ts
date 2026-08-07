@@ -23,6 +23,8 @@ interface CreateCheckoutInput {
 export async function createDonationCheckout(input: CreateCheckoutInput) {
   const donor = await prisma.user.findUnique({ where: { id: input.donorUserId } });
   if (!donor) throw new NotFoundError("Account not found");
+  // Org staff manage funds, they don't give to them, a donor identity is a separate account.
+  if (donor.role === "ADMIN") throw new ForbiddenError("Organization accounts can't donate. Log in with a donor account to give.");
   if (!donor.emailVerified) throw new ForbiddenError("Please verify your email before donating");
 
   const fund = await prisma.fund.findUnique({ where: { id: input.fundId } });

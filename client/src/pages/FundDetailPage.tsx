@@ -207,12 +207,19 @@ export function FundDetailPage() {
                 <ProgressBar raisedCents={fund.raisedCents} goalCents={fund.goalCents} />
                 <p className="text-xs text-[var(--color-ink-soft)]">{formatCents(fund.spentCents)} spent so far, itemized above</p>
               </div>
-              {user && user.emailVerified && (
+              {user && user.role === "ADMIN" && (
+                <div className="rounded-xl border border-[var(--color-border)] bg-black/[0.02] p-3 text-center">
+                  <p className="text-xs text-[var(--color-ink-soft)]">
+                    Organization accounts can't donate. Log in with a donor account to give.
+                  </p>
+                </div>
+              )}
+              {user && user.role === "DONOR" && user.emailVerified && (
                 <Button onClick={() => setIsDonateOpen(true)} className="w-full">
                   Donate to this fund
                 </Button>
               )}
-              {user && !user.emailVerified && (
+              {user && user.role === "DONOR" && !user.emailVerified && (
                 <div className="flex flex-col gap-2 rounded-xl border border-[var(--color-border)] bg-black/[0.02] p-3 text-center">
                   <p className="text-xs text-[var(--color-ink-soft)]">Verify your email before you can donate.</p>
                   <Button variant="ghost" onClick={handleResend} isLoading={isResending} className="w-full">

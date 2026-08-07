@@ -100,6 +100,8 @@ const NONPROFITS: SeedOrg[] = [
       "One of the largest food banks in the country, distributing donated and purchased food to hundreds of partner pantries across 18 Southeast Texas counties.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Houston_Food_Bank_%28logo%29.jpg/250px-Houston_Food_Bank_%28logo%29.jpg",
     websiteUrl: "https://www.houstonfoodbank.org",
+    bannerUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Secretary_Perdue_and_Senator_Cornyn_at_Houston_Food_Bank_(20200716-OSEC-LSC-0439).jpg?width=1280",
     fund: {
       name: "Emergency Food Distribution",
       description: "Covers sourcing, cold storage, and transport of shelf-stable and fresh food to partner pantries.",
@@ -161,6 +163,8 @@ const NONPROFITS: SeedOrg[] = [
     description: "The nation's largest youth mentoring network, pairing kids with adult mentors through one-to-one relationships.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Big_Brothers_Big_Sisters_of_America_logo.png/250px-Big_Brothers_Big_Sisters_of_America_logo.png",
     websiteUrl: "https://www.bbbs.org",
+    bannerUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/US_Navy_070210-N-6081J-282_Senior_Chief_Gas_Turbine_System_Technician_Mike_Wroten,_assigned_to_guided_missile_destroyer_USS_Bainbridge_(DDG_96),_helps_his_son_bowl_at_the_Big_Brothers_Big_Sisters_of_South_Hampton_Roads.jpg?width=1280",
     fund: {
       name: "Mentor Match Program",
       description: "Covers background checks, mentor training, and program staff that make new youth-mentor matches possible.",
@@ -181,6 +185,7 @@ const NONPROFITS: SeedOrg[] = [
     description: "Operates 24/7 crisis intervention and suicide prevention services for LGBTQ young people.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/The_Trevor_Project_logo.svg/250px-The_Trevor_Project_logo.svg.png",
     websiteUrl: "https://www.thetrevorproject.org",
+    bannerUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/DSC_0127_The_Trevor_Project_dot_Org_(5826677026).jpg?width=1280",
     fund: {
       name: "Crisis Line Operations",
       description: "Keeps the 24/7 phone, text, and chat crisis lines staffed with trained crisis counselors.",
@@ -223,6 +228,7 @@ const NONPROFITS: SeedOrg[] = [
     description: "A nationwide network of food banks that sources and distributes food to local hunger-relief agencies.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/a/aa/Feeding_America_logo.svg/250px-Feeding_America_logo.svg.png",
     websiteUrl: "https://www.feedingamerica.org",
+    bannerUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Alameda_Food_Bank_Thanksgiving_volunteers_111119-G-FY356-019.jpg?width=1280",
     fund: {
       name: "Nationwide Food Rescue",
       description: "Funds food rescue logistics that move surplus food from suppliers to local food banks before it goes to waste.",
@@ -243,6 +249,7 @@ const NONPROFITS: SeedOrg[] = [
     description: "Funds suicide prevention research and supports survivors of suicide loss through education and advocacy programs.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/American_Foundation_for_Suicide_Prevention_logo.svg/250px-American_Foundation_for_Suicide_Prevention_logo.svg.png",
     websiteUrl: "https://afsp.org",
+    bannerUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Out_of_the_Darkness_Walk_(9939783424).jpg?width=1280",
     fund: {
       name: "Prevention Research Fund",
       description: "Funds peer-reviewed research into suicide risk factors and prevention strategies.",
@@ -263,6 +270,8 @@ const NONPROFITS: SeedOrg[] = [
     description: "Provides emergency assistance, disaster relief, and disaster preparedness education across the country.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/American_Red_Cross_logo.svg/250px-American_Red_Cross_logo.svg.png",
     websiteUrl: "https://www.redcross.org",
+    bannerUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Ortley_Beach,_N.J.,_Nov._28,_2012_--_Sharon_Meyers,_a_Red_Cross_volunteer,_offers_a_hot_meal_to_a_resident_in_Ortley_Beach,_NJ._The_Red_Cross_is_providing_disaster_relief,_from_hot_-_DPLA_-_25584b763cd0998c4b0794d601608ef9.jpg?width=1280",
     fund: {
       name: "Disaster Relief Response",
       description: "Funds emergency shelter, food, and relief supplies for families displaced by disasters.",
@@ -283,6 +292,7 @@ const NONPROFITS: SeedOrg[] = [
     description: "Builds and repairs affordable homes in partnership with families in need across the country and around the world.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Logo_Habitat_for_Humanity.svg/250px-Logo_Habitat_for_Humanity.svg.png",
     websiteUrl: "https://www.habitat.org",
+    bannerUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Habitat_For_Humanity_Build_2011_037.jpg?width=1280",
     fund: {
       name: "Home Building Fund",
       description: "Funds construction materials and skilled labor coordination for new affordable homes.",
@@ -303,6 +313,8 @@ const NONPROFITS: SeedOrg[] = [
     description: "Works to protect land and water around the world through conservation science, land acquisition, and habitat restoration.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/9/91/Nature_Conservancy.svg/250px-Nature_Conservancy.svg.png",
     websiteUrl: "https://www.nature.org",
+    bannerUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/2010_May_-_The_Nature_Conservancy's_Megan_Gibney_and_Service_botanist_Carolyn_Wells_looking_for_rare_plants_(4679838292).jpg?width=1280",
     fund: {
       name: "Land & Water Conservation",
       description: "Funds land acquisition and habitat restoration in threatened watersheds and forests.",
@@ -323,6 +335,8 @@ const NONPROFITS: SeedOrg[] = [
     description: "Runs after-school and summer clubs that give young people a safe place to learn, play, and build skills.",
     logoUrl: "https://upload.wikimedia.org/wikipedia/en/thumb/9/93/Boys_%26_Girls_Clubs_of_America_Logo.svg/250px-Boys_%26_Girls_Clubs_of_America_Logo.svg.png",
     websiteUrl: "https://www.bgca.org",
+    bannerUrl:
+      "https://commons.wikimedia.org/wiki/Special:FilePath/Local_Youth_Wins_National_Recognition_in_Boys_%26_Girls_Clubs_Art_Contest_(9784569).jpg?width=1280",
     fund: {
       name: "After-School Programs Fund",
       description: "Funds staffing, activity supplies, and snacks for after-school club programming.",

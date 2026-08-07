@@ -63,7 +63,7 @@ export async function createDonationCheckout(input: CreateCheckoutInput) {
     action: AuditAction.DONATION_INITIATED,
     targetType: "Fund",
     targetId: fund.id,
-    metadata: { amountCents: input.amountCents },
+    metadata: { amountCents: input.amountCents, fundName: fund.name },
   });
 
   if (!session.url) throw new ValidationError("Could not start checkout session");
@@ -75,7 +75,10 @@ export function constructWebhookEvent(rawBody: Buffer, signature: string): Strip
 }
 
 export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  const donation = await prisma.donation.findUnique({ where: { stripeCheckoutSessionId: session.id } });
+  const donation = await prisma.donation.findUnique({
+    where: { stripeCheckoutSessionId: session.id },
+    include: { fund: { select: { name: true } } },
+  });
   if (!donation) {
     log.warn({ sessionId: session.id }, "checkout completed for unknown donation record");
     return;
@@ -86,12 +89,14 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
     data: { status: "SUCCEEDED", stripePaymentIntentId: (session.payment_intent as string) ?? null },
   });
 
+  // targetType/targetId point at the Fund (not the Donation) so the org's audit log, which is
+  // scoped by fund ownership, can actually find donation activity for its own funds.
   await recordAuditEvent({
     actorUserId: donation.donorUserId,
     action: AuditAction.DONATION_SUCCEEDED,
-    targetType: "Donation",
-    targetId: donation.id,
-    metadata: { amountCents: donation.amountCents, fundId: donation.fundId },
+    targetType: "Fund",
+    targetId: donation.fundId,
+    metadata: { amountCents: donation.amountCents, fundName: donation.fund.name, donationId: donation.id },
   });
 
   log.info({ donationId: donation.id, fundId: donation.fundId }, "donation succeeded");
@@ -134,7 +139,10 @@ async function sendReceiptEmail(donationId: string) {
 }
 
 export async function handleCheckoutSessionFailed(session: Stripe.Checkout.Session) {
-  const donation = await prisma.donation.findUnique({ where: { stripeCheckoutSessionId: session.id } });
+  const donation = await prisma.donation.findUnique({
+    where: { stripeCheckoutSessionId: session.id },
+    include: { fund: { select: { name: true } } },
+  });
   if (!donation) return;
 
   await prisma.donation.update({ where: { id: donation.id }, data: { status: "FAILED" } });
@@ -142,8 +150,9 @@ export async function handleCheckoutSessionFailed(session: Stripe.Checkout.Sessi
   await recordAuditEvent({
     actorUserId: donation.donorUserId,
     action: AuditAction.DONATION_FAILED,
-    targetType: "Donation",
-    targetId: donation.id,
+    targetType: "Fund",
+    targetId: donation.fundId,
+    metadata: { amountCents: donation.amountCents, fundName: donation.fund.name, donationId: donation.id },
   });
 
   log.warn({ donationId: donation.id }, "donation failed or expired");

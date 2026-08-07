@@ -12,8 +12,10 @@ export function OrgAvatar({
 
   if (imageUrl) {
     return (
-      <span className={`flex shrink-0 items-center justify-center rounded-full bg-white p-1 ring-1 ring-inset ring-black/5 ${dimensions}`}>
-        <img src={imageUrl} alt="" className="h-full w-full object-contain" />
+      <span
+        className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 ring-1 ring-inset ring-black/5 ${dimensions}`}
+      >
+        <img src={imageUrl} alt="" className="h-full w-full rounded-full object-cover" />
       </span>
     );
   }

@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar";
+import { Footer } from "./components/layout/Footer";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { BrowseFundsPage } from "./pages/BrowseFundsPage";
@@ -11,6 +12,8 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { DonateSuccessPage } from "./pages/DonateSuccessPage";
 import { DonateCancelledPage } from "./pages/DonateCancelledPage";
 import { OAuthCompletePage } from "./pages/OAuthCompletePage";
+import { TermsPage } from "./pages/TermsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 
 export function App() {
   return (
@@ -26,6 +29,8 @@ export function App() {
           <Route path="/donate/success" element={<DonateSuccessPage />} />
           <Route path="/donate/cancelled" element={<DonateCancelledPage />} />
           <Route path="/oauth/complete" element={<OAuthCompletePage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="/dashboard"
             element={
@@ -44,6 +49,7 @@ export function App() {
           />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

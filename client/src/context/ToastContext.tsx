@@ -39,6 +39,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Returns a fresh object every render, so callers that use it inside a
+// useEffect should leave it out of the dependency array rather than resetting
+// the effect on every render; ctx.push itself is stable.
 export function useToast() {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within a ToastProvider");

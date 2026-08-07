@@ -90,10 +90,9 @@ is checked before any donation is marked paid. See
   user actually sees, and a scoped console log (`[candor:<module>]`)
   for whoever's debugging it. See `lib/logger.ts` and
   `context/ToastContext.tsx`.
-- **Demo data**: eight real, verified nonprofits (see "Demo data" below)
-  show a green "Verified nonprofit" badge that links back to their IRS
-  registry entry; the donation activity on those funds is clearly labeled
-  as simulated.
+- **Demo data**: 33 real, verified nonprofits (see "Demo data" below) show a
+  green "Verified nonprofit" badge that links back to their IRS registry
+  entry. Donation activity on those funds is clearly labeled as simulated.
 
 ## Security
 
@@ -202,11 +201,11 @@ npm run seed:nonprofits      # one-time, idempotent
 npm run simulate:donations   # requires the API server already running
 ```
 
-`seed:nonprofits` pulls real name, EIN, city, and state for eight well-known
+`seed:nonprofits` pulls real name, EIN, city, and state for 33 well-known
 nonprofits from the IRS registry via [ProPublica's Nonprofit Explorer
 API](https://projects.propublica.org/nonprofits/api) and creates a verified
 `Organization` and starter `Fund` for each, so `/funds` shows real
-organizations instead of placeholder test data. It's idempotent, safe to
+organizations instead of placeholder test data. It's idempotent and safe to
 rerun.
 
 `simulate:donations` builds a real `checkout.session.completed` event, signs

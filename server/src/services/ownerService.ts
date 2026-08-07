@@ -146,10 +146,10 @@ export async function listFunds(params: { page: number; limit: number; search?: 
   };
 }
 
-// Every delete below refuses to touch anything with real donation history, deliberately.
-// The whole premise of this app is an honest, permanent ledger, an owner cleaning up test
-// data should never be able to silently make a fund's "raised" total wrong. Prisma Studio
-// remains available as the deliberate, unguarded escape hatch for the rare real exception.
+// Every delete below deliberately refuses to touch anything with real donation history.
+// The whole premise of this app is an honest, permanent ledger. Cleaning up test data
+// should never be able to silently make a fund's "raised" total wrong. Prisma Studio is
+// still available as an unguarded escape hatch for the rare real exception.
 
 export async function deleteUser(userId: string, actor: ActorMeta) {
   if (userId === actor.id) throw new ForbiddenError("You can't delete your own account from here");

@@ -49,8 +49,7 @@ export function AdminDashboardPage() {
     } finally {
       setIsLoading(false);
     }
-    // toast intentionally omitted: its wrapper identity changes every render,
-    // but it always dispatches through the same stable ToastContext.push
+    // toast left out of deps on purpose, see useToast
   }, []);
 
   useEffect(() => {

@@ -36,11 +36,11 @@ export function PrivacyPage() {
         <h2>Third parties involved</h2>
         <ul>
           <li>
-            <strong>Stripe</strong> — processes checkout (test mode only). See Stripe's own privacy policy for how
+            <strong>Stripe</strong>: processes checkout (test mode only). See Stripe's own privacy policy for how
             they handle payment data.
           </li>
           <li>
-            <strong>Google / GitHub</strong> — optional sign-in providers, if you choose to use them instead of a
+            <strong>Google / GitHub</strong>: optional sign-in providers, if you choose to use them instead of a
             password.
           </li>
         </ul>

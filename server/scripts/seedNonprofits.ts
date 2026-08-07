@@ -1,7 +1,7 @@
 // Seeds real, verifiable nonprofits (name, EIN, city/state pulled from the IRS registry via
 // ProPublica's Nonprofit Explorer API: https://projects.propublica.org/nonprofits/api) so the
 // browse page has real organizations instead of placeholder test data. Fund goals and expense
-// line items are illustrative, these orgs never signed up, hence organization.verified rather
+// line items are illustrative. These orgs never signed up, hence organization.verified rather
 // than a real admin account. Deliberately does NOT create any donations: nobody has actually
 // donated to these funds through Candor, so raised starts honest at $0. Run
 // `npm run simulate:donations` separately if you want fake donation activity for a demo.

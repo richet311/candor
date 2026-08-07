@@ -17,9 +17,9 @@ interface SendEmailInput {
   html: string;
 }
 
-// Without RESEND_API_KEY configured (or in tests), emails are logged instead of sent, so the
-// app still runs end-to-end without a real email provider set up. This never throws, a failed
-// or unconfigured email send should never break the signup/donation flow it's attached to.
+// Without RESEND_API_KEY configured (or in tests), emails are logged instead of sent so the
+// app still runs end-to-end without a real email provider set up. This never throws: a failed
+// or unconfigured send shouldn't break the signup/donation flow it's attached to.
 export async function sendEmail(input: SendEmailInput): Promise<void> {
   if (env.NODE_ENV === "test" || !env.RESEND_API_KEY) {
     log.info({ to: input.to, subject: input.subject, html: input.html }, "email not sent, no provider configured");

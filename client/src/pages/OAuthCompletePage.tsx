@@ -30,8 +30,7 @@ export function OAuthCompletePage() {
         navigate("/login", { replace: true });
       }
     }
-    // toast intentionally omitted: its wrapper identity changes every render,
-    // but it always dispatches through the same stable ToastContext.push
+    // toast not in deps here either, same reason as useToast
   }, [error, isLoading, user, event, navigate]);
 
   return <Spinner label="Finishing sign-in..." />;

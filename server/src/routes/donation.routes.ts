@@ -50,7 +50,7 @@ router.get(
 );
 
 // Public feed for the homepage activity ticker. Excludes the demo donor pool used by
-// scripts/simulateDonations.ts, this feed should only ever show donations a real person
+// scripts/simulateDonations.ts: this feed should only ever show donations a real person
 // actually made, not the background activity simulator. Donor identity is only ever
 // included when that donor didn't opt into an anonymous donation.
 router.get(

@@ -17,7 +17,7 @@ router.get(
     // Donations are acted by the donor, not org staff, so they'd never match an actor-based
     // filter. Surface them by fund ownership instead, alongside anything actually done by
     // this org's own team. auth.refresh fires automatically every ~15 minutes a session stays
-    // open, it's not a meaningful action for a human reviewing activity, so it's left out here.
+    // open; it's not a meaningful action for a human reviewing activity, so it's left out here.
     const orgFunds = await prisma.fund.findMany({ where: { organizationId }, select: { id: true } });
     const fundIds = orgFunds.map((f) => f.id);
 

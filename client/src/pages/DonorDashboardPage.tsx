@@ -48,8 +48,7 @@ export function DonorDashboardPage() {
     return () => {
       cancelled = true;
     };
-    // toast intentionally omitted: its wrapper identity changes every render,
-    // but it always dispatches through the same stable ToastContext.push
+    // toast omitted from deps, see useToast for why
   }, []);
 
   const totalGiven = donations.filter((d) => d.status === "SUCCEEDED").reduce((sum, d) => sum + d.amountCents, 0);

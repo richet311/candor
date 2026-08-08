@@ -4,7 +4,9 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm install && npm run prisma:generate && npm run build
+    # --include=dev: NODE_ENV=production below makes plain `npm install` skip
+    # devDependencies, but typescript and prisma (both dev deps) are needed to build.
+    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build
     startCommand: npm run prisma:deploy && npm start
     healthCheckPath: /api/health
     envVars:

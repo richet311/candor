@@ -83,6 +83,23 @@ async function issueTokenPair(user: User, meta: RequestMeta): Promise<TokenPair>
   return { accessToken, refreshToken };
 }
 
+// OAuth sign-ups skip the registration form, so there's no username input to take, generate a
+// reasonable starter one from their name instead so donor-facing displays never show a blank.
+// Falls back to appending a short random suffix on a collision rather than failing signup over it.
+async function generateUsernameFromName(name: string): Promise<string> {
+  const base = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 20) || "donor";
+
+  const existing = await prisma.user.findUnique({ where: { username: base } });
+  if (!existing) return base;
+
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return `${base}${suffix}`;
+}
+
 export type OAuthEvent = "returning" | "linked" | "created";
 
 export async function findOrCreateOAuthUser(
@@ -95,18 +112,17 @@ export async function findOrCreateOAuthUser(
   });
   if (existingAccount) return { user: existingAccount.user, event: "returning" };
 
-  // Same email, no OAuthAccount for this provider yet: attach this provider to the existing
-  // account rather than reject it as a duplicate, so a user who signed up with a password (or a
-  // different provider) doesn't end up with two disconnected accounts for one email address.
+
   const existingByEmail = await prisma.user.findUnique({ where: { email: profile.email } });
   if (existingByEmail) {
     await prisma.oAuthAccount.create({ data: { userId: existingByEmail.id, provider, providerAccountId: profile.providerAccountId } });
     return { user: existingByEmail, event: "linked" };
   }
 
+  const username = await generateUsernameFromName(profile.name);
   const user = await prisma.$transaction(async (tx) => {
-    // The OAuth provider already verified this email address, so there's nothing to confirm.
-    const created = await tx.user.create({ data: { email: profile.email, name: profile.name, role: "DONOR", emailVerified: true } });
+
+    const created = await tx.user.create({ data: { email: profile.email, name: profile.name, username, role: "DONOR", emailVerified: true } });
     await tx.oAuthAccount.create({ data: { userId: created.id, provider, providerAccountId: profile.providerAccountId } });
     return created;
   });
@@ -118,6 +134,7 @@ function publicUser(user: User) {
     id: user.id,
     email: user.email,
     name: user.name,
+    username: user.username,
     avatarUrl: user.avatarUrl,
     bio: user.bio,
     role: user.role,
@@ -148,13 +165,20 @@ export async function updateProfile(
   return publicUser(user);
 }
 
-export async function registerDonor(input: { email: string; password: string; name: string }, meta: RequestMeta) {
+export async function registerDonor(
+  input: { email: string; password: string; firstName: string; lastName: string; username: string },
+  meta: RequestMeta,
+) {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) throw new ConflictError("An account with this email already exists");
 
+  const usernameTaken = await prisma.user.findUnique({ where: { username: input.username } });
+  if (usernameTaken) throw new ConflictError("This username is already taken");
+
+  const name = `${input.firstName} ${input.lastName}`.trim();
   const passwordHash = await bcrypt.hash(input.password, BCRYPT_COST);
   const user = await prisma.user.create({
-    data: { email: input.email, passwordHash, name: input.name, role: "DONOR" },
+    data: { email: input.email, passwordHash, name, username: input.username, role: "DONOR" },
   });
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_REGISTER, targetType: "User", targetId: user.id, ipAddress: meta.ipAddress });
@@ -167,7 +191,7 @@ export async function registerDonor(input: { email: string; password: string; na
 }
 
 export async function registerOrganization(
-  input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string },
+  input: { orgName: string; adminEmail: string; adminPassword: string; adminFirstName: string; adminLastName: string },
   meta: RequestMeta,
 ) {
   const existing = await prisma.user.findUnique({ where: { email: input.adminEmail } });
@@ -179,12 +203,13 @@ export async function registerOrganization(
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
+  const adminName = `${input.adminFirstName} ${input.adminLastName}`.trim();
   const passwordHash = await bcrypt.hash(input.adminPassword, BCRYPT_COST);
 
   const user = await prisma.$transaction(async (tx) => {
     const org = await tx.organization.create({ data: { name: input.orgName, slug: `${slug}-${Date.now().toString(36)}` } });
     return tx.user.create({
-      data: { email: input.adminEmail, passwordHash, name: input.adminName, role: "ADMIN", organizationId: org.id },
+      data: { email: input.adminEmail, passwordHash, name: adminName, role: "ADMIN", organizationId: org.id },
     });
   });
 
@@ -200,9 +225,14 @@ export async function registerOrganization(
 export async function loginWithPassword(input: { email: string; password: string }, meta: RequestMeta) {
   const user = await prisma.user.findUnique({ where: { email: input.email } });
 
-  if (!user || !user.passwordHash) {
+  if (!user) {
     await recordAuditEvent({ action: AuditAction.AUTH_LOGIN_FAILED, metadata: { email: input.email, reason: "no_such_account" }, ipAddress: meta.ipAddress });
-    throw new UnauthorizedError("Invalid email or password");
+    throw new UnauthorizedError("No Candor account is registered with that email yet.");
+  }
+
+  if (!user.passwordHash) {
+    await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_LOGIN_FAILED, metadata: { reason: "no_password_set" }, ipAddress: meta.ipAddress });
+    throw new UnauthorizedError("This account signs in with Google or GitHub, not a password.");
   }
 
   if (user.lockedUntil && user.lockedUntil > new Date()) {

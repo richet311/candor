@@ -60,7 +60,7 @@ router.get(
       where: { status: "SUCCEEDED", donor: { isDemoDonor: false } },
       include: {
         fund: { select: { name: true, slug: true, organization: { select: { name: true } } } },
-        donor: { select: { name: true } },
+        donor: { select: { name: true, username: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 8,
@@ -71,7 +71,7 @@ router.get(
         id: d.id,
         amountCents: d.amountCents,
         createdAt: d.createdAt,
-        donorName: d.isAnonymous ? null : d.donor.name,
+        donorName: d.isAnonymous ? null : (d.donor.username ?? d.donor.name),
         fund: { name: d.fund.name, slug: d.fund.slug, organizationName: d.fund.organization.name },
       })),
     });

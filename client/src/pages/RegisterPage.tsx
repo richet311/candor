@@ -16,8 +16,8 @@ export function RegisterPage() {
   const [mode, setMode] = useState<Mode>("donor");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [donorForm, setDonorForm] = useState({ name: "", email: "", password: "" });
-  const [orgForm, setOrgForm] = useState({ orgName: "", adminName: "", adminEmail: "", adminPassword: "" });
+  const [donorForm, setDonorForm] = useState({ firstName: "", lastName: "", username: "", email: "", password: "" });
+  const [orgForm, setOrgForm] = useState({ orgName: "", adminFirstName: "", adminLastName: "", adminEmail: "", adminPassword: "" });
 
   async function handleDonorSubmit(e: FormEvent) {
     e.preventDefault();
@@ -93,7 +93,34 @@ export function RegisterPage() {
                 <div className="h-px flex-1 bg-[var(--color-border)]" />
               </div>
               <form onSubmit={handleDonorSubmit} className="flex flex-col gap-4">
-                <Input label="Full name" required value={donorForm.name} onChange={(e) => setDonorForm({ ...donorForm, name: e.target.value })} />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label="First name"
+                    required
+                    value={donorForm.firstName}
+                    onChange={(e) => setDonorForm({ ...donorForm, firstName: e.target.value })}
+                    autoComplete="given-name"
+                  />
+                  <Input
+                    label="Last name"
+                    required
+                    value={donorForm.lastName}
+                    onChange={(e) => setDonorForm({ ...donorForm, lastName: e.target.value })}
+                    autoComplete="family-name"
+                  />
+                </div>
+                <Input
+                  label="Username"
+                  required
+                  minLength={3}
+                  maxLength={24}
+                  pattern="[a-zA-Z0-9_]+"
+                  title="Letters, numbers, and underscores only"
+                  hint="Shown on your public donations instead of your real name"
+                  value={donorForm.username}
+                  onChange={(e) => setDonorForm({ ...donorForm, username: e.target.value })}
+                  autoComplete="username"
+                />
                 <Input
                   label="Email"
                   type="email"
@@ -121,7 +148,22 @@ export function RegisterPage() {
           {mode === "organization" && (
             <form onSubmit={handleOrgSubmit} className="flex flex-col gap-4">
               <Input label="Organization name" required value={orgForm.orgName} onChange={(e) => setOrgForm({ ...orgForm, orgName: e.target.value })} />
-              <Input label="Your name" required value={orgForm.adminName} onChange={(e) => setOrgForm({ ...orgForm, adminName: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="First name"
+                  required
+                  value={orgForm.adminFirstName}
+                  onChange={(e) => setOrgForm({ ...orgForm, adminFirstName: e.target.value })}
+                  autoComplete="given-name"
+                />
+                <Input
+                  label="Last name"
+                  required
+                  value={orgForm.adminLastName}
+                  onChange={(e) => setOrgForm({ ...orgForm, adminLastName: e.target.value })}
+                  autoComplete="family-name"
+                />
+              </div>
               <Input
                 label="Work email"
                 type="email"

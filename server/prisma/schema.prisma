@@ -37,6 +37,7 @@ model User {
   email               String        @unique
   passwordHash        String?
   name                String
+  username            String?       @unique
   avatarUrl           String?
   bio                 String?
   emailVerified       Boolean       @default(false)

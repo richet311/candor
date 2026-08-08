@@ -19,17 +19,27 @@ const REFRESH_COOKIE = "cf_refresh_token";
 const passwordSchema = z.string().min(10, "Password must be at least 10 characters").max(200);
 const emailSchema = z.string().trim().toLowerCase().email();
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters")
+  .max(24, "Username must be 24 characters or fewer")
+  .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores");
+
 const registerDonorSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  name: z.string().trim().min(1).max(120),
+  firstName: z.string().trim().min(1).max(60),
+  lastName: z.string().trim().min(1).max(60),
+  username: usernameSchema,
 });
 
 const registerOrgSchema = z.object({
   orgName: z.string().trim().min(2).max(160),
   adminEmail: emailSchema,
   adminPassword: passwordSchema,
-  adminName: z.string().trim().min(1).max(120),
+  adminFirstName: z.string().trim().min(1).max(60),
+  adminLastName: z.string().trim().min(1).max(60),
 });
 
 const loginSchema = z.object({

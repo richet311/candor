@@ -5,6 +5,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  username: string | null;
   avatarUrl?: string | null;
   bio?: string | null;
   role: Role;

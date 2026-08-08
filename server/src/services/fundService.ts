@@ -61,7 +61,7 @@ export async function getFundDetail(slug: string) {
       donations: {
         where: { status: "SUCCEEDED" },
         orderBy: { createdAt: "desc" },
-        select: { id: true, amountCents: true, createdAt: true, isAnonymous: true, donor: { select: { name: true, isDemoDonor: true } } },
+        select: { id: true, amountCents: true, createdAt: true, isAnonymous: true, donor: { select: { name: true, username: true, isDemoDonor: true } } },
       },
       expenses: { orderBy: { createdAt: "desc" }, select: { id: true, category: true, description: true, amountCents: true, createdAt: true } },
       updates: { orderBy: { createdAt: "desc" }, select: { id: true, body: true, createdAt: true } },
@@ -85,8 +85,8 @@ export async function getFundDetail(slug: string) {
       amountCents: d.amountCents,
       createdAt: d.createdAt,
       isAnonymous: d.isAnonymous,
-      // Simulated/demo donations never reveal a "real" name; only a genuine donor's own name is shown.
-      donorName: d.isAnonymous || d.donor.isDemoDonor ? null : d.donor.name,
+     
+      donorName: d.isAnonymous || d.donor.isDemoDonor ? null : (d.donor.username ?? d.donor.name),
     })),
     ...fund.expenses.map((e) => ({ type: "expense" as const, id: e.id, amountCents: e.amountCents, category: e.category, description: e.description, createdAt: e.createdAt })),
   ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());

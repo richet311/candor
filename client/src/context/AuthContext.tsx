@@ -15,8 +15,14 @@ interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  registerDonor: (input: { email: string; password: string; name: string }) => Promise<void>;
-  registerOrganization: (input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string }) => Promise<void>;
+  registerDonor: (input: { email: string; password: string; firstName: string; lastName: string; username: string }) => Promise<void>;
+  registerOrganization: (input: {
+    orgName: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminFirstName: string;
+    adminLastName: string;
+  }) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (input: { name?: string; avatarUrl?: string; bio?: string }) => Promise<void>;
@@ -85,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function registerDonor(input: { email: string; password: string; name: string }) {
+  async function registerDonor(input: { email: string; password: string; firstName: string; lastName: string; username: string }) {
     try {
       const data = await apiFetch<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(input) });
       applySession(data);
@@ -97,7 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function registerOrganization(input: { orgName: string; adminEmail: string; adminPassword: string; adminName: string }) {
+  async function registerOrganization(input: {
+    orgName: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminFirstName: string;
+    adminLastName: string;
+  }) {
     try {
       const data = await apiFetch<AuthResponse>("/auth/register-organization", { method: "POST", body: JSON.stringify(input) });
       applySession(data);

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useCallback, useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { PageContainer } from "../components/layout/PageContainer";
@@ -51,21 +51,28 @@ export function RegisterPage() {
     await updateProfile({ name: `${details.firstName} ${details.lastName}`.trim(), username: details.username });
   }
 
-  async function handleGoogleCredential(idToken: string) {
-    try {
-      const { user, event } = await loginWithGoogle(idToken);
-      if (event === "created") {
-        const [firstName, ...rest] = user.name.split(" ");
-        setSignupMethod("oauth");
-        setDetailsPrefill({ firstName: firstName ?? "", lastName: rest.join(" "), username: user.username ?? "" });
-        setStep("details");
-      } else {
-        navigate("/");
+  // Memoized: GoogleSignInButton stays mounted through the whole wizard (its GIS init needs to
+  // survive step changes), and its own effect depends on this callback's identity to decide
+  // whether to re-run. Without useCallback, every step transition re-renders RegisterPage with
+  // a fresh function here, which tears down and rebuilds Google's iframe mid-slide-animation.
+  const handleGoogleCredential = useCallback(
+    async (idToken: string) => {
+      try {
+        const { user, event } = await loginWithGoogle(idToken);
+        if (event === "created") {
+          const [firstName, ...rest] = user.name.split(" ");
+          setSignupMethod("oauth");
+          setDetailsPrefill({ firstName: firstName ?? "", lastName: rest.join(" "), username: user.username ?? "" });
+          setStep("details");
+        } else {
+          navigate("/");
+        }
+      } catch {
+        // toast already shown by AuthContext
       }
-    } catch {
-      // toast already shown by AuthContext
-    }
-  }
+    },
+    [loginWithGoogle, navigate],
+  );
 
   async function handleOrgSubmit(e: FormEvent) {
     e.preventDefault();

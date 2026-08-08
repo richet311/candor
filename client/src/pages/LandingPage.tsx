@@ -234,7 +234,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/70">Candor's platform fee</span>
-                <span className="font-semibold text-[var(--color-accent)]">$25</span>
+                <span className="font-semibold text-[var(--color-success)]">$0</span>
               </div>
               <p className="mt-2 border-t border-white/15 pt-2 text-xs text-white/50">
                 Stripe's standard processing fee still applies, same as any online checkout. Candor just never adds

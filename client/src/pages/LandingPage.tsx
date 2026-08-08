@@ -207,15 +207,15 @@ export function LandingPage() {
         </div>
       </PageContainer>
 
-      <section className="grid border-y border-[var(--color-border)] sm:grid-cols-2">
-        <div className="flex flex-col items-center justify-center gap-4 border-b border-[var(--color-border)] bg-[var(--color-paper-raised)] px-6 py-16 text-center sm:border-b-0 sm:border-r sm:px-10 lg:px-16">
+      <section className="grid bg-[var(--color-navy)]/[0.06] sm:grid-cols-2">
+        <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center sm:px-10 lg:px-16">
           <LedgerIllustration className="h-56 w-auto sm:h-64" />
           <span className="text-sm text-[var(--color-ink-soft)]">
             <span className="font-semibold text-[var(--color-accent)]">100%</span> of your donation reaches the fund
           </span>
         </div>
 
-        <div className="flex flex-col items-center justify-center bg-[var(--color-paper-raised)] px-6 py-16 sm:items-start sm:px-10 lg:px-16">
+        <div className="flex flex-col items-center justify-center px-6 py-16 sm:items-start sm:px-10 lg:px-16">
           <div className="flex w-full max-w-xs flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--color-ink-soft)]">Your donation</span>

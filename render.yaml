@@ -12,6 +12,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Render assigns this at service creation; the GitHub OAuth redirect_uri is built
+      # from it (authService.ts), so GitHub login redirects to localhost without it.
+      - key: API_ORIGIN
+        value: https://candor-api.onrender.com
       # Point this at a Neon (neon.tech) connection string rather than Render's own
       # free Postgres: Render's free databases expire after 30 days and get deleted,
       # Neon's free tier doesn't expire. Use the "pooled connection" string from Neon.

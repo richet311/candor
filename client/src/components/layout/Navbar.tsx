@@ -1,14 +1,35 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, type ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { UserAvatar } from "../UserAvatar";
 import { Logo } from "../Logo";
 
-const NAV_LINK = "font-medium text-white/70 hover:text-white transition-colors";
-const NAV_LINK_MOBILE = "font-medium text-white/80 hover:text-white transition-colors py-2.5";
 const NAV_GHOST = "border-white/25 text-white hover:bg-white/10";
+
+// Mirrors the hand-drawn accent underline on the logo, so the current page is marked the same
+// way the brand already marks itself, rather than introducing a separate active-state pattern.
+function NavLink({ to, mobile, onClick, children }: { to: string; mobile?: boolean; onClick?: () => void; children: ReactNode }) {
+  const { pathname } = useLocation();
+  const isActive = pathname === to;
+
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`relative font-medium transition-colors ${mobile ? "py-2.5" : ""} ${isActive ? "text-white" : "text-white/70 hover:text-white"}`}
+    >
+      <span className="flex items-center gap-2">{children}</span>
+      <span
+        className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-[var(--color-accent)] transition-all duration-200 ${
+          isActive ? "w-full opacity-100" : "w-0 opacity-0"
+        }`}
+        aria-hidden="true"
+      />
+    </Link>
+  );
+}
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -28,28 +49,20 @@ export function Navbar() {
   }
 
   return (
-    <header className="border-b border-white/10 bg-[var(--color-navy-dark)]">
+    <header className="border-b border-white/15 bg-[var(--color-navy-dark)] shadow-[0_4px_16px_rgba(0,0,0,0.35)]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
         <Link to="/" className="text-xl text-white" onClick={closeMenu}>
           <Logo />
         </Link>
 
         <nav className="hidden items-center gap-5 text-sm sm:flex">
-          <Link to="/funds" className={NAV_LINK}>
-            Browse funds
-          </Link>
-          <Link to="/organizations" className={NAV_LINK}>
-            Nonprofits
-          </Link>
-          <Link to="/impact" className={NAV_LINK}>
-            Impact
-          </Link>
+          <NavLink to="/funds">Browse funds</NavLink>
+          <NavLink to="/organizations">Nonprofits</NavLink>
+          <NavLink to="/impact">Impact</NavLink>
 
           {!user && (
             <>
-              <Link to="/login" className={NAV_LINK}>
-                Log in
-              </Link>
+              <NavLink to="/login">Log in</NavLink>
               <Link to="/register">
                 <Button variant="secondary">Sign up</Button>
               </Link>
@@ -58,10 +71,10 @@ export function Navbar() {
 
           {user?.role === "DONOR" && (
             <>
-              <Link to="/dashboard" className={`flex items-center gap-2 ${NAV_LINK}`}>
+              <NavLink to="/dashboard">
                 <UserAvatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
                 My donations
-              </Link>
+              </NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
@@ -70,9 +83,7 @@ export function Navbar() {
 
           {user?.role === "ADMIN" && (
             <>
-              <Link to="/admin" className={NAV_LINK}>
-                Nonprofit dashboard
-              </Link>
+              <NavLink to="/admin">Nonprofit dashboard</NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
@@ -81,9 +92,7 @@ export function Navbar() {
 
           {user?.role === "OWNER" && (
             <>
-              <Link to="/owner" className={NAV_LINK}>
-                Owner dashboard
-              </Link>
+              <NavLink to="/owner">Owner dashboard</NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={NAV_GHOST}>
                 Log out
               </Button>
@@ -106,21 +115,21 @@ export function Navbar() {
 
       {isMenuOpen && (
         <nav className="flex flex-col gap-1 border-t border-white/10 px-4 pb-5 pt-2 text-sm sm:hidden">
-          <Link to="/funds" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+          <NavLink to="/funds" mobile onClick={closeMenu}>
             Browse funds
-          </Link>
-          <Link to="/organizations" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+          </NavLink>
+          <NavLink to="/organizations" mobile onClick={closeMenu}>
             Nonprofits
-          </Link>
-          <Link to="/impact" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+          </NavLink>
+          <NavLink to="/impact" mobile onClick={closeMenu}>
             Impact
-          </Link>
+          </NavLink>
 
           {!user && (
             <>
-              <Link to="/login" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+              <NavLink to="/login" mobile onClick={closeMenu}>
                 Log in
-              </Link>
+              </NavLink>
               <Link to="/register" onClick={closeMenu} className="mt-2">
                 <Button variant="secondary" className="w-full">
                   Sign up
@@ -131,10 +140,10 @@ export function Navbar() {
 
           {user?.role === "DONOR" && (
             <>
-              <Link to="/dashboard" className={`flex items-center gap-2 ${NAV_LINK_MOBILE}`} onClick={closeMenu}>
+              <NavLink to="/dashboard" mobile onClick={closeMenu}>
                 <UserAvatar name={user.name} imageUrl={user.avatarUrl} size="sm" />
                 My donations
-              </Link>
+              </NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={`mt-2 w-full ${NAV_GHOST}`}>
                 Log out
               </Button>
@@ -143,9 +152,9 @@ export function Navbar() {
 
           {user?.role === "ADMIN" && (
             <>
-              <Link to="/admin" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+              <NavLink to="/admin" mobile onClick={closeMenu}>
                 Nonprofit dashboard
-              </Link>
+              </NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={`mt-2 w-full ${NAV_GHOST}`}>
                 Log out
               </Button>
@@ -154,9 +163,9 @@ export function Navbar() {
 
           {user?.role === "OWNER" && (
             <>
-              <Link to="/owner" className={NAV_LINK_MOBILE} onClick={closeMenu}>
+              <NavLink to="/owner" mobile onClick={closeMenu}>
                 Owner dashboard
-              </Link>
+              </NavLink>
               <Button variant="ghost" onClick={() => setIsConfirmingLogout(true)} className={`mt-2 w-full ${NAV_GHOST}`}>
                 Log out
               </Button>

@@ -21,6 +21,11 @@ services:
       # Neon's free tier doesn't expire. Use the "pooled connection" string from Neon.
       - key: DATABASE_URL
         sync: false
+      # Neon's "Direct connection" string (not pooled) - required for prisma migrate deploy,
+      # which needs a session-scoped advisory lock the pooled connection can't hold. See
+      # schema.prisma. Using the pooled string here too causes a P1002 lock-timeout on deploy.
+      - key: DIRECT_URL
+        sync: false
       # Set this to the deployed client URL once you know it (e.g. your Cloudflare
       # Pages domain), then redeploy. CORS and the OAuth redirect both depend on it.
       - key: CLIENT_ORIGIN

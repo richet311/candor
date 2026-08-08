@@ -29,6 +29,7 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://candor:candor_dev_only@localhost:5432/candor
+      DIRECT_URL: postgresql://candor:candor_dev_only@localhost:5432/candor
       CLIENT_ORIGIN: http://localhost:5173
       # CI-only placeholders, never used against the real Stripe API or a real session
       JWT_ACCESS_SECRET: ci-only-access-secret-do-not-use-in-production-xxxxx
@@ -55,6 +56,7 @@ jobs:
         run: npm run prisma:deploy
         env:
           DATABASE_URL: postgresql://candor:candor_dev_only@localhost:5432/candor_test
+          DIRECT_URL: postgresql://candor:candor_dev_only@localhost:5432/candor_test
       - run: npm test
       - run: npm run build
 

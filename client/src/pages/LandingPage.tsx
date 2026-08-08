@@ -207,7 +207,7 @@ export function LandingPage() {
         </div>
       </PageContainer>
 
-      <section className="grid bg-[var(--color-navy)]/[0.06] sm:grid-cols-2">
+      <section className="grid bg-[var(--color-accent)]/[0.08] sm:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center sm:px-10 lg:px-16">
           <LedgerIllustration className="h-56 w-auto sm:h-64" />
           <span className="text-sm text-[var(--color-ink-soft)]">

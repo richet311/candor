@@ -7,6 +7,7 @@ import { FundCard } from "../components/FundCard";
 import { Spinner } from "../components/ui/Spinner";
 import { RecentDonationsTicker } from "../components/RecentDonationsTicker";
 import { VerifiedCheckIcon } from "../components/VerifiedBadge";
+import { LedgerIllustration } from "../components/LedgerIllustration";
 import { useFunds } from "../hooks/useFunds";
 import { useFund } from "../hooks/useFund";
 import { formatCents } from "../lib/money";
@@ -207,9 +208,11 @@ export function LandingPage() {
       </PageContainer>
 
       <section className="grid sm:grid-cols-2">
-        <div className="flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-16 text-center sm:items-end sm:px-10 sm:text-right lg:px-16">
-          <span className="text-6xl font-bold tracking-tight text-[var(--color-accent)] sm:text-7xl">100%</span>
-          <span className="mt-1 text-sm text-white/70">of your donation reaches the fund</span>
+        <div className="flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-16 text-center sm:px-10 lg:px-16">
+          <LedgerIllustration className="h-56 w-auto sm:h-64" />
+          <span className="text-sm text-white/70">
+            <span className="font-semibold text-[var(--color-accent)]">100%</span> of your donation reaches the fund
+          </span>
         </div>
 
         <div className="flex flex-col items-center justify-center bg-[var(--color-paper-raised)] px-6 py-16 sm:items-start sm:px-10 lg:px-16">

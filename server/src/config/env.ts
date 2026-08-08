@@ -11,8 +11,11 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32, "JWT_REFRESH_SECRET must be at least 32 characters"),
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
-  STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
-  STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
+  // trim(): these get sent verbatim as an HTTP Authorization header (Stripe SDK) or used
+  // to verify a signature byte-for-byte (webhook secret) - a stray copy-pasted newline or
+  // trailing space breaks both in ways that are painful to trace back to the env var.
+  STRIPE_SECRET_KEY: z.string().trim().min(1, "STRIPE_SECRET_KEY is required"),
+  STRIPE_WEBHOOK_SECRET: z.string().trim().min(1, "STRIPE_WEBHOOK_SECRET is required"),
 
   GOOGLE_CLIENT_ID: z.string().optional(),
 

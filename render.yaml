@@ -51,3 +51,18 @@ services:
       # Optional. Without it, verification/receipt emails are logged instead of sent.
       - key: RESEND_API_KEY
         sync: false
+      # Object storage for uploaded avatars/org logos (Cloudflare R2, S3-compatible).
+      # Required in production - config/env.ts refuses to boot without these once
+      # NODE_ENV=production, since local disk doesn't survive a restart on Render.
+      # dash.cloudflare.com > R2 > create a bucket > enable public access ("r2.dev"
+      # subdomain is fine for this) > Manage API tokens > create an S3-compatible token.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false

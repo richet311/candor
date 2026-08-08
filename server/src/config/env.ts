@@ -26,9 +26,28 @@ const envSchema = z.object({
   // so the app still runs end-to-end without a real email provider configured.
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default("Candor <onboarding@resend.dev>"),
+
+  // Optional in development, where uploads fall back to local disk (see r2.ts / upload.routes.ts).
+  // Render's filesystem is ephemeral though - it's wiped on every deploy and every idle-restart -
+  // so production needs these set or uploaded avatars/logos silently stop resolving after the
+  // next deploy. Enforced below via superRefine rather than here, since the requirement is
+  // conditional on NODE_ENV.
+  R2_ACCOUNT_ID: z.string().trim().optional(),
+  R2_ACCESS_KEY_ID: z.string().trim().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().trim().optional(),
+  R2_BUCKET_NAME: z.string().trim().optional(),
+  R2_PUBLIC_URL: z.string().trim().url().optional(),
 });
 
-const parsed = envSchema.safeParse(process.env);
+const parsed = envSchema
+  .superRefine((data, ctx) => {
+    if (data.NODE_ENV !== "production") return;
+    const required = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME", "R2_PUBLIC_URL"] as const;
+    for (const key of required) {
+      if (!data[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required in production` });
+    }
+  })
+  .safeParse(process.env);
 
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("\n");

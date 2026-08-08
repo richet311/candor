@@ -108,6 +108,69 @@ describe("donor registration and login", () => {
   });
 });
 
+describe("PATCH /auth/me username", () => {
+  it("sets a new username", async () => {
+    const donor = await request(app)
+      .post("/api/auth/register")
+      .send({ email: "picker@example.com", password: "correcthorsebattery", firstName: "Pick", lastName: "Er", username: "auto_pickerer" });
+
+    const res = await request(app)
+      .patch("/api/auth/me")
+      .set("Authorization", `Bearer ${donor.body.accessToken}`)
+      .send({ username: "chosen_by_me" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.username).toBe("chosen_by_me");
+  });
+
+  it("allows resubmitting your own current username unchanged", async () => {
+    const donor = await request(app)
+      .post("/api/auth/register")
+      .send({ email: "same@example.com", password: "correcthorsebattery", firstName: "Sam", lastName: "E", username: "already_mine" });
+
+    const res = await request(app)
+      .patch("/api/auth/me")
+      .set("Authorization", `Bearer ${donor.body.accessToken}`)
+      .send({ username: "already_mine" });
+
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects a username already taken by someone else", async () => {
+    await request(app)
+      .post("/api/auth/register")
+      .send({ email: "first_taker@example.com", password: "correcthorsebattery", firstName: "First", lastName: "Taker", username: "taken_name" });
+    const donor = await request(app)
+      .post("/api/auth/register")
+      .send({ email: "second_taker@example.com", password: "correcthorsebattery", firstName: "Second", lastName: "Taker", username: "not_taken_yet" });
+
+    const res = await request(app)
+      .patch("/api/auth/me")
+      .set("Authorization", `Bearer ${donor.body.accessToken}`)
+      .send({ username: "taken_name" });
+
+    expect(res.status).toBe(409);
+  });
+
+  it("rejects a malformed username", async () => {
+    const donor = await request(app)
+      .post("/api/auth/register")
+      .send({ email: "malformed@example.com", password: "correcthorsebattery", firstName: "Mal", lastName: "Formed", username: "malformed_user" });
+
+    const res = await request(app)
+      .patch("/api/auth/me")
+      .set("Authorization", `Bearer ${donor.body.accessToken}`)
+      .send({ username: "not a username!" });
+
+    expect(res.status).toBe(422);
+  });
+
+  it("blocks an unauthenticated request", async () => {
+    const res = await request(app).patch("/api/auth/me").send({ username: "anonymous_attempt" });
+    expect(res.status).toBe(401);
+  });
+});
+
 describe("role-based access control", () => {
   it("blocks a donor from creating a fund", async () => {
     const donor = await request(app)

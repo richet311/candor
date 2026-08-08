@@ -53,6 +53,7 @@ const googleLoginSchema = z.object({
 
 const updateProfileSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
+  username: usernameSchema.optional(),
   avatarUrl: z.string().trim().url().max(2000).optional().or(z.literal("")),
   bio: z.string().trim().max(280).optional().or(z.literal("")),
 });
@@ -162,6 +163,7 @@ router.patch(
       req.user!.sub,
       {
         name: req.body.name,
+        username: req.body.username,
         avatarUrl: req.body.avatarUrl === undefined ? undefined : req.body.avatarUrl || null,
         bio: req.body.bio === undefined ? undefined : req.body.bio || null,
       },

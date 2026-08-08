@@ -151,12 +151,19 @@ export async function getMe(userId: string) {
 
 export async function updateProfile(
   userId: string,
-  input: { name?: string; avatarUrl?: string | null; bio?: string | null },
+  input: { name?: string; username?: string; avatarUrl?: string | null; bio?: string | null },
   meta: RequestMeta,
 ) {
+  if (input.username) {
+    // Onboarding prefills this field with the account's own auto-generated username, so
+    // resubmitting it unchanged must not collide with yourself.
+    const existing = await prisma.user.findUnique({ where: { username: input.username } });
+    if (existing && existing.id !== userId) throw new ConflictError("This username is already taken");
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
-    data: { name: input.name, avatarUrl: input.avatarUrl, bio: input.bio },
+    data: { name: input.name, username: input.username, avatarUrl: input.avatarUrl, bio: input.bio },
   });
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.USER_PROFILE_UPDATED, targetType: "User", targetId: user.id, ipAddress: meta.ipAddress });

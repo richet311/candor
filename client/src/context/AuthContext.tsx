@@ -23,9 +23,9 @@ interface AuthContextValue {
     adminFirstName: string;
     adminLastName: string;
   }) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<{ user: User; event: OAuthEvent }>;
   logout: () => Promise<void>;
-  updateProfile: (input: { name?: string; avatarUrl?: string; bio?: string }) => Promise<void>;
+  updateProfile: (input: { name?: string; username?: string; avatarUrl?: string; bio?: string }) => Promise<void>;
   verifyEmail: (token: string) => Promise<User>;
   resendVerificationEmail: () => Promise<void>;
 }
@@ -126,6 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await apiFetch<AuthResponse>("/auth/google", { method: "POST", body: JSON.stringify({ idToken }) });
       applySession(data);
       toast.success(oauthWelcomeMessage(data.event, data.user.name));
+      // data.event is always present on this response; the server sets it on every /auth/google reply.
+      return { user: data.user, event: data.event! };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Google sign-in failed";
       toast.error(message, err);
@@ -133,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function updateProfile(input: { name?: string; avatarUrl?: string; bio?: string }) {
+  async function updateProfile(input: { name?: string; username?: string; avatarUrl?: string; bio?: string }) {
     try {
       const data = await apiFetch<{ user: User }>("/auth/me", { method: "PATCH", body: JSON.stringify(input) });
       setUser(data.user);

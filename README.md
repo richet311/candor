@@ -4,6 +4,15 @@ A donation platform where a nonprofit's fundraising page isn't a progress bar
 with a vague percentage: it's an open ledger. Every dollar raised and every
 dollar spent is itemized, categorized, and visible to a donor before they give.
 
+## This is a demo
+
+Candor is a portfolio project, not a live donation platform. Payments run
+through Stripe's test mode only, no real money ever moves and no card is
+actually charged. The nonprofits shown are real organizations sourced from
+[ProPublica's Nonprofit Explorer](https://projects.propublica.org/nonprofits/)
+(a public IRS registry) to make the data feel real; none of them signed up
+for, use, or endorse this project, and donations made here never reach them.
+
 ## Why
 
 Most donation platforms show a thermometer graphic and a "trust us" caption.
@@ -295,3 +304,7 @@ providers' dashboards too. For the Stripe webhook, add an endpoint in the
 Stripe dashboard (test mode) pointing at
 `https://<your-api>.onrender.com/api/webhooks/stripe`, then copy its
 signing secret into `STRIPE_WEBHOOK_SECRET` on Render.
+
+## License
+
+[MIT](LICENSE)

@@ -28,7 +28,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-[var(--color-navy-dark)]">
+    <header className="bg-[var(--color-navy-dark)]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
         <Link to="/" className="text-xl text-white" onClick={closeMenu}>
           <Logo />

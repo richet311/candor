@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
+import { DemoBanner } from "./components/DemoBanner";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { BrowseFundsPage } from "./pages/BrowseFundsPage";
@@ -23,7 +24,10 @@ import { ImpactPage } from "./pages/ImpactPage";
 export function App() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <div className="sticky top-0 z-30">
+        <DemoBanner />
+        <Navbar />
+      </div>
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />

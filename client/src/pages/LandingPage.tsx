@@ -147,7 +147,7 @@ export function LandingPage() {
         </svg>
       </section>
 
-      <PageContainer className="-mt-8 grid gap-4 pb-4 sm:-mt-10 sm:grid-cols-3 sm:gap-5">
+      <PageContainer className="relative z-10 -mt-4 grid gap-4 pb-4 sm:-mt-6 sm:grid-cols-3 sm:gap-5">
         <StatTile label="Active funds" value={isLoading ? "…" : String(total)} />
         <StatTile label="Raised so far" value={isLoading ? "…" : formatCents(totalRaisedCents)} />
         <StatTile label="Itemized and spent" value={isLoading ? "…" : formatCents(totalSpentCents)} hint="Every dollar logged by category" />
@@ -207,10 +207,10 @@ export function LandingPage() {
         </div>
       </PageContainer>
 
-      <section className="grid sm:grid-cols-2">
-        <div className="flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-16 text-center sm:px-10 lg:px-16">
+      <section className="grid border-y border-[var(--color-border)] sm:grid-cols-2">
+        <div className="flex flex-col items-center justify-center gap-4 border-b border-[var(--color-border)] bg-[var(--color-paper-raised)] px-6 py-16 text-center sm:border-b-0 sm:border-r sm:px-10 lg:px-16">
           <LedgerIllustration className="h-56 w-auto sm:h-64" />
-          <span className="text-sm text-white/70">
+          <span className="text-sm text-[var(--color-ink-soft)]">
             <span className="font-semibold text-[var(--color-accent)]">100%</span> of your donation reaches the fund
           </span>
         </div>

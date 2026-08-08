@@ -25,11 +25,7 @@ export function LedgerIllustration({ className = "" }: { className?: string }) {
 
       <path d="M42 154 H176" stroke="var(--color-border)" strokeWidth="1.5" strokeDasharray="1 6" strokeLinecap="round" />
 
-      <g>
-        <path d="M42 180 H128" stroke="var(--color-accent)" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="165" cy="180" r="14" fill="var(--color-accent)" />
-        <path d="M159 180 l4 4 l9 -9" stroke="var(--color-paper)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
+      <path d="M42 180 H176" stroke="var(--color-accent)" strokeWidth="4" strokeLinecap="round" />
     </svg>
   );
 }

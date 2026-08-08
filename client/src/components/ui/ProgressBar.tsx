@@ -1,5 +1,7 @@
 export function ProgressBar({ raisedCents, goalCents }: { raisedCents: number; goalCents: number }) {
   const pct = goalCents > 0 ? Math.min(100, Math.round((raisedCents / goalCents) * 100)) : 0;
+  // A fund with any donations at all gets a sliver of visible bar even if it rounds to 0%,
+  // so "raised something" is never indistinguishable from "raised nothing" at a glance.
   const barWidth = raisedCents > 0 ? Math.max(pct, 2) : 0;
   const label = pct === 0 && raisedCents > 0 ? "<1% of goal" : `${pct}% of goal`;
 

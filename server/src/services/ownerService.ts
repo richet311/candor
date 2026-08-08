@@ -257,6 +257,8 @@ export async function approveVerification(orgId: string, actor: ActorMeta) {
     data: {
       verified: true,
       verificationStatus: "VERIFIED",
+      // ProPublica's Nonprofit Explorer is the same public IRS-registry lookup the seed script
+      // sourced these orgs from in the first place, so it doubles as citable evidence here.
       sourceUrl: org.ein ? `https://projects.propublica.org/nonprofits/organizations/${org.ein}` : org.sourceUrl,
     },
   });

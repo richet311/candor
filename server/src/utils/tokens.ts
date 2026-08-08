@@ -40,6 +40,9 @@ export function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
+// Reuses JWT_ACCESS_SECRET rather than a dedicated secret for these short-lived, single-purpose
+// tokens; the "purpose" field is what actually keeps them from being confused with a real access
+// token or with each other, since every verifier below checks it explicitly.
 interface OAuthStatePayload {
   purpose: "oauth_state";
   provider: string;

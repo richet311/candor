@@ -66,11 +66,13 @@ const GRADIENTS = [
   "bg-gradient-to-tr from-[var(--color-navy)] to-[var(--color-success)]",
 ];
 
+// Deterministic string hash so the same fund always picks the same gradient/icon across
+// renders and reloads, instead of one assigned randomly per page load.
 function hashString(value: string): number {
   let hash = 0;
   for (let i = 0; i < value.length; i++) {
     hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
+    hash |= 0; // keep it a 32-bit int so this can't drift into an unsafe float on long strings
   }
   return Math.abs(hash);
 }

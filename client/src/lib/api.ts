@@ -65,6 +65,8 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}, allow
     throw new ApiError("Could not reach the server. Check your connection and try again.", 0);
   }
 
+  // A 401 on /auth/refresh itself means the session is genuinely gone, retrying it by calling
+  // refresh again would just be asking the same failed thing to fix itself.
   if (res.status === 401 && allowRetry && path !== "/auth/refresh") {
     log.warn("access token rejected, attempting silent refresh", { path });
     const refreshed = await refreshAccessToken();

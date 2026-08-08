@@ -85,7 +85,8 @@ export async function getFundDetail(slug: string) {
       amountCents: d.amountCents,
       createdAt: d.createdAt,
       isAnonymous: d.isAnonymous,
-     
+      // Demo donors are simulated activity, not real people, so their names are withheld here
+      // the same as an anonymous donor's would be rather than exposing fake names as if real.
       donorName: d.isAnonymous || d.donor.isDemoDonor ? null : (d.donor.username ?? d.donor.name),
     })),
     ...fund.expenses.map((e) => ({ type: "expense" as const, id: e.id, amountCents: e.amountCents, category: e.category, description: e.description, createdAt: e.createdAt })),

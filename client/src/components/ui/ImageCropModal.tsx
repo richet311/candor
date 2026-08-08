@@ -46,6 +46,8 @@ export function ImageCropModal({
   const dispW = imgSize ? imgSize.w * baseScale * zoom : 0;
   const dispH = imgSize ? imgSize.h * baseScale * zoom : 0;
 
+  // Keeps the image's edge from being dragged past the crop box's edge in either direction,
+  // so the frame never shows empty space beyond what was actually loaded.
   function clamp(x: number, y: number, w: number, h: number): Position {
     const minX = Math.min(0, BOX_WIDTH - w);
     const minY = Math.min(0, boxHeight - h);
@@ -92,6 +94,9 @@ export function ImageCropModal({
     if (!imgSize || !imageUrl) return;
     setIsSaving(true);
     try {
+      // pos/zoom describe where the image sits on screen; drawImage instead needs the crop
+      // rect in the original image's own pixel space, so this undoes the display scale and
+      // flips the pan offset's sign to convert screen-space back to source-space.
       const scaleFactor = baseScale * zoom;
       const srcX = -pos.x / scaleFactor;
       const srcY = -pos.y / scaleFactor;

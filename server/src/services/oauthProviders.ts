@@ -63,6 +63,9 @@ const github: OAuthProviderDef = {
       verified: boolean;
     }>;
 
+    // An unverified primary is skipped rather than used: account linking below trusts this
+    // email address, so falling back to any other verified one is safer than trusting an
+    // unverified primary just because GitHub marked it as such.
     const primaryEmail = emails.find((e) => e.primary && e.verified) ?? emails.find((e) => e.verified);
     if (!primaryEmail) throw new UnauthorizedError("Your GitHub account has no verified email address");
 

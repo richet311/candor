@@ -270,6 +270,10 @@ export async function loginWithPassword(input: { email: string; password: string
 
 export async function loginWithGoogle(input: { idToken: string }, meta: RequestMeta) {
   const profile = await verifyGoogleIdToken(input.idToken);
+  // Account linking below trusts profile.email to belong to whoever is signing in, so an
+  // unverified address (rare, but Google allows it) can't be used to take over an existing
+  // account. GitHub's path gets this for free by only ever returning verified emails.
+  if (!profile.emailVerified) throw new UnauthorizedError("Your Google account's email isn't verified");
   const { user, event } = await findOrCreateOAuthUser("GOOGLE", { providerAccountId: profile.googleId, email: profile.email, name: profile.name });
 
   await recordAuditEvent({ actorUserId: user.id, action: AuditAction.AUTH_GOOGLE_LOGIN, ipAddress: meta.ipAddress });
@@ -346,6 +350,9 @@ export async function refreshSession(refreshToken: string, meta: RequestMeta) {
   }
 
   if (stored.revokedAt) {
+    // A revoked token being presented again means it was stolen and already used by its
+    // rightful owner (or vice versa) - the standard signal for refresh-token theft. Kill every
+    // session, not just this one, since we can't tell which side is the attacker.
     log.error({ userId: stored.userId }, "refresh token reuse detected, revoking all sessions for user");
     await prisma.refreshToken.updateMany({ where: { userId: stored.userId, revokedAt: null }, data: { revokedAt: new Date() } });
     await recordAuditEvent({ actorUserId: stored.userId, action: AuditAction.AUTH_REFRESH_REUSE_DETECTED, ipAddress: meta.ipAddress });

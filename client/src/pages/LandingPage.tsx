@@ -44,9 +44,6 @@ const STEPS = [
 
 export function LandingPage() {
   const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading } = useFunds({ limit: 48 });
-  // Funds are returned newest-first, so the literal first fund is usually a freshly seeded one
-  // with nothing raised yet. Feature whichever real fund has raised the most instead, so the
-  // hero card shows an honest, flattering example rather than a $0 placeholder.
   const previewFund = [...funds].sort((a, b) => b.raisedCents - a.raisedCents)[0];
   const { fund: previewFundDetail } = useFund(previewFund?.slug);
   const previewPresetAmountsCents = getPresetAmountsCents(previewFund?.category);
@@ -237,7 +234,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/70">Candor's platform fee</span>
-                <span className="font-semibold text-[var(--color-accent)]">$0</span>
+                <span className="font-semibold text-[var(--color-accent)]">$25</span>
               </div>
               <p className="mt-2 border-t border-white/15 pt-2 text-xs text-white/50">
                 Stripe's standard processing fee still applies, same as any online checkout. Candor just never adds

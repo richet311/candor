@@ -269,13 +269,19 @@ every deploy (`prisma migrate deploy` is in the start command). Free-tier
 services sleep after ~15 minutes idle; the first request after that takes
 30-50s to cold start.
 
-### 3. Client (Cloudflare Pages)
+### 3. Client (Cloudflare Workers static assets)
 
-Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** →
-connect the same GitHub repo. Root directory `client`, build command
-`npm run build`, output directory `dist`. Add env var `VITE_API_URL` set to
-your Render service's URL plus `/api`. `client/public/_redirects` is
-already in the repo so client-side routes don't 404 on a hard refresh.
+Cloudflare's dashboard now deploys static sites as a Worker with static
+assets rather than a classic "Pages project," so it builds from
+`client/wrangler.jsonc` instead of a "build output directory" field.
+Dashboard → **Workers & Pages** → **Create** → connect this repo → set
+**Path** to `client` and **Build command** to `npm run build`; leave
+**Deploy command** as the pre-filled `npx wrangler deploy`, it reads
+`wrangler.jsonc` automatically. Add env var `VITE_API_URL` set to your
+Render service's URL plus `/api`. `not_found_handling` in `wrangler.jsonc`
+is set to `single-page-application`, so client-side routes don't 404 on a
+hard refresh (the classic-Pages `_redirects` file in `client/public/` is
+harmless but unused by this deploy path).
 
 ### 4. Wire them together
 

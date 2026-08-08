@@ -204,14 +204,16 @@ export function LandingPage() {
             </div>
           ))}
         </div>
+      </PageContainer>
 
-        <div className="grid overflow-hidden rounded-2xl shadow-[0_1px_2px_rgba(18,32,58,0.04),0_12px_28px_-10px_rgba(18,32,58,0.12)] sm:grid-cols-2">
-          <div className="flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-10 text-center sm:items-start sm:px-10 sm:text-left">
-            <span className="text-6xl font-bold tracking-tight text-[var(--color-accent)] sm:text-7xl">100%</span>
-            <span className="mt-1 text-sm text-white/70">of your donation reaches the fund</span>
-          </div>
+      <section className="grid sm:grid-cols-2">
+        <div className="flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-16 text-center sm:items-end sm:px-10 sm:text-right lg:px-16">
+          <span className="text-6xl font-bold tracking-tight text-[var(--color-accent)] sm:text-7xl">100%</span>
+          <span className="mt-1 text-sm text-white/70">of your donation reaches the fund</span>
+        </div>
 
-          <div className="flex flex-col justify-center gap-2 bg-[var(--color-paper-raised)] px-6 py-10 sm:px-10">
+        <div className="flex flex-col items-center justify-center bg-[var(--color-paper-raised)] px-6 py-16 sm:items-start sm:px-10 lg:px-16">
+          <div className="flex w-full max-w-xs flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--color-ink-soft)]">Your donation</span>
               <span className="font-semibold text-[var(--color-ink)]">$100</span>
@@ -226,7 +228,7 @@ export function LandingPage() {
             </p>
           </div>
         </div>
-      </PageContainer>
+      </section>
     </div>
   );
 }

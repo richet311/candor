@@ -192,55 +192,38 @@ export function LandingPage() {
 
       <PageContainer className="flex flex-col gap-8 py-16">
         <h2 className="text-2xl font-bold tracking-tight text-[var(--color-ink)]">How it works</h2>
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-3 sm:gap-6">
           {STEPS.map((step, i) => (
-            <Card key={step.title} className="transition-shadow hover:shadow-lg">
-              <CardBody className="flex flex-col gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent)]/10 text-sm font-bold text-[var(--color-accent)]">
-                  {i + 1}
-                </span>
-                <h3 className="font-semibold text-[var(--color-ink)]">{step.title}</h3>
-                <p className="text-sm text-[var(--color-ink-soft)]">{step.body}</p>
-              </CardBody>
-            </Card>
+            <div key={step.title} className="flex flex-col gap-3">
+              <span className="text-5xl font-bold tracking-tight text-[var(--color-accent)] sm:text-6xl">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="h-1 w-8 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+              <h3 className="font-semibold text-[var(--color-ink)]">{step.title}</h3>
+              <p className="text-sm text-[var(--color-ink-soft)]">{step.body}</p>
+            </div>
           ))}
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-10 shadow-[0_1px_2px_rgba(18,32,58,0.04),0_12px_28px_-10px_rgba(18,32,58,0.12)] sm:px-10">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="0.75"
-            className="pointer-events-none absolute -bottom-8 -right-8 h-48 w-48 text-white opacity-[0.06]"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 5L5 19M8 6a2 2 0 11-4 0 2 2 0 014 0zM20 18a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+        <div className="grid overflow-hidden rounded-2xl shadow-[0_1px_2px_rgba(18,32,58,0.04),0_12px_28px_-10px_rgba(18,32,58,0.12)] sm:grid-cols-2">
+          <div className="flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-10 text-center sm:items-start sm:px-10 sm:text-left">
+            <span className="text-6xl font-bold tracking-tight text-[var(--color-accent)] sm:text-7xl">100%</span>
+            <span className="mt-1 text-sm text-white/70">of your donation reaches the fund</span>
+          </div>
 
-          <div className="relative flex flex-col items-center gap-8 sm:flex-row sm:justify-center">
-            <div className="flex flex-col items-center text-center text-white sm:items-end sm:text-right">
-              <span className="text-6xl font-bold tracking-tight text-[var(--color-accent)] sm:text-7xl">100%</span>
-              <span className="mt-1 text-sm text-white/70">of your donation reaches the fund</span>
+          <div className="flex flex-col justify-center gap-2 bg-[var(--color-paper-raised)] px-6 py-10 sm:px-10">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[var(--color-ink-soft)]">Your donation</span>
+              <span className="font-semibold text-[var(--color-ink)]">$100</span>
             </div>
-
-            <div className="hidden h-20 w-px bg-white/15 sm:block" />
-            <div className="h-px w-24 bg-white/15 sm:hidden" />
-
-            <div className="flex w-full max-w-[240px] flex-col gap-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/70">Your donation</span>
-                <span className="font-semibold text-white">$100</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/70">Candor's platform fee</span>
-                <span className="font-semibold text-[var(--color-success)]">$0</span>
-              </div>
-              <p className="mt-2 border-t border-white/15 pt-2 text-xs text-white/50">
-                Stripe's standard processing fee still applies, same as any online checkout. Candor just never adds
-                its own on top.
-              </p>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-[var(--color-ink-soft)]">Candor's platform fee</span>
+              <span className="font-semibold text-[var(--color-success)]">$0</span>
             </div>
+            <p className="mt-2 border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-ink-soft)]">
+              Stripe's standard processing fee still applies, same as any online checkout. Candor just never adds its
+              own on top.
+            </p>
           </div>
         </div>
       </PageContainer>

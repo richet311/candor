@@ -275,17 +275,20 @@ Cloudflare's dashboard now deploys static sites as a Worker with static
 assets rather than a classic "Pages project," so it builds from
 `client/wrangler.jsonc` instead of a "build output directory" field.
 Dashboard → **Workers & Pages** → **Create** → connect this repo → set
-**Path** to `client` and **Build command** to `npm run build`; leave
-**Deploy command** as the pre-filled `npx wrangler deploy`, it reads
-`wrangler.jsonc` automatically. Add env var `VITE_API_URL` set to your
-Render service's URL plus `/api`. `not_found_handling` in `wrangler.jsonc`
-is set to `single-page-application`, so client-side routes don't 404 on a
-hard refresh (the classic-Pages `_redirects` file in `client/public/` is
-harmless but unused by this deploy path).
+**Project name** to `candor-client` (must match the `name` in
+`client/wrangler.jsonc` or the build fails), **Path** to `client`, and
+**Build command** to `npm run build`; leave **Deploy command** as the
+pre-filled `npx wrangler deploy`, it reads `wrangler.jsonc` automatically.
+Add env var `VITE_API_URL` set to your Render service's URL plus `/api`.
+`not_found_handling` in `wrangler.jsonc` is set to `single-page-application`,
+so client-side routes don't 404 on a hard refresh — don't add a classic-Pages
+`_redirects` file alongside it, Wrangler's newer asset deploy validates
+`_redirects` rules and rejects the usual `/* /index.html 200` catch-all as an
+infinite loop.
 
 ### 4. Wire them together
 
-Once you have the Pages URL, set `CLIENT_ORIGIN` on Render to that exact
+Once you have the Workers URL, set `CLIENT_ORIGIN` on Render to that exact
 origin and redeploy the API, CORS and the OAuth redirect both check it. If
 you're using Google or GitHub sign-in, add the new domains to those
 providers' dashboards too. For the Stripe webhook, add an endpoint in the

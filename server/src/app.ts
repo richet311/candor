@@ -22,6 +22,12 @@ import { UPLOADS_DIR } from "./lib/uploadsDir.js";
 export function createApp() {
   const app = express();
 
+  // Render puts one reverse proxy in front of the app, so req.ip needs exactly one
+  // trusted hop to resolve to the real client IP instead of Render's proxy address.
+  // Without this every request looks like it comes from the same IP, which silently
+  // turns each rate limiter below into one shared bucket for the entire site.
+  app.set("trust proxy", 1);
+
   app.use(helmetMiddleware);
   app.use(corsMiddleware);
   app.use(

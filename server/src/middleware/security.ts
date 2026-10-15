@@ -26,6 +26,10 @@ const corsOptions: CorsOptions = {
   credentials: true,
   methods: ["GET", "POST", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  // Any request carrying a bearer token or a JSON body is preflighted, and without a max age
+  // browsers only reuse a preflight result for 5 seconds, so nearly every authenticated call
+  // paid for an extra OPTIONS round trip first. 2 hours is the most Chromium will honor.
+  maxAge: 7200,
 };
 
 export const corsMiddleware = cors(corsOptions);

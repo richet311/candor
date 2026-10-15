@@ -6,8 +6,16 @@ services:
     rootDir: server
     # --include=dev: NODE_ENV=production below makes plain `npm install` skip
     # devDependencies, but typescript and prisma (both dev deps) are needed to build.
-    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build
-    startCommand: npm run prisma:deploy && npm start
+    # Migrations run as the last build step, after the compile succeeds, rather than in
+    # startCommand: the start command also runs every time the free instance wakes from
+    # idle, and booting the Prisma CLI plus a migration check against Neon on every wake
+    # added seconds to each cold start. (preDeployCommand is the usual home for this, but
+    # Render only offers it on paid instance types.) Like a pre-deploy step, this applies a
+    # migration while the previous deploy is still serving, so keep migrations additive.
+    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build && npm run prisma:deploy
+    # node directly rather than `npm start`: one less process to boot on a 0.1 CPU instance,
+    # and SIGTERM reaches index.ts's graceful shutdown without npm in between.
+    startCommand: node dist/index.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

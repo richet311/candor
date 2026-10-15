@@ -1,8 +1,23 @@
 {
   "name": "candor-client",
   "compatibility_date": "2026-08-07",
+  // Only runs for the cron trigger below and for requests that match no file. With this
+  // compatibility date, page navigations get the SPA's index.html straight from assets.
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
+  },
+  // Every 10 minutes, inside Render's 15-minute idle cutoff (see worker/index.ts). Keeping one
+  // free service up around the clock uses up to 744 of a workspace's 750 free instance hours a
+  // month, and Render suspends every free service in the workspace once they run out. If other
+  // free Render services share that workspace, narrow this to the hours visitors come by
+  // (e.g. "*/10 13-23,0-5 * * *" for US daytime, in UTC) or remove it.
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "vars": {
+    "API_HEALTH_URL": "https://candor-api.onrender.com/api/health"
   }
 }

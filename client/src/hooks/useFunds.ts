@@ -22,6 +22,9 @@ const EMPTY: FundsResponse = { funds: [], total: 0, page: 1, limit: 12, totalPag
 export function useFunds({ page = 1, limit = 12, search = "", category = "" }: { page?: number; limit?: number; search?: string; category?: string } = {}) {
   const [data, setData] = useState<FundsResponse>(EMPTY);
   const [isLoading, setIsLoading] = useState(true);
+  // Lets callers tell "loaded, and there's nothing" apart from "couldn't load", which would
+  // otherwise both look like EMPTY's zeros.
+  const [loadFailed, setLoadFailed] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export function useFunds({ page = 1, limit = 12, search = "", category = "" }: {
 
     async function load() {
       setIsLoading(true);
+      setLoadFailed(false);
       try {
         const params = new URLSearchParams({ page: String(page), limit: String(limit) });
         if (search.trim()) params.set("search", search.trim());
@@ -42,6 +46,7 @@ export function useFunds({ page = 1, limit = 12, search = "", category = "" }: {
       } catch (err) {
         const message = err instanceof ApiError ? err.message : "Could not load funds";
         toast.error(message, err);
+        if (!cancelled) setLoadFailed(true);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -53,5 +58,5 @@ export function useFunds({ page = 1, limit = 12, search = "", category = "" }: {
     };
   }, [page, limit, search, category]);
 
-  return { ...data, isLoading };
+  return { ...data, isLoading, loadFailed };
 }

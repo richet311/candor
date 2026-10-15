@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
 import { DemoBanner } from "./components/DemoBanner";
+import { ServerWakeNotice } from "./components/ServerWakeNotice";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
 import { BrowseFundsPage } from "./pages/BrowseFundsPage";
@@ -26,6 +27,7 @@ export function App() {
     <div className="flex min-h-screen flex-col">
       <div className="sticky top-0 z-30">
         <DemoBanner />
+        <ServerWakeNotice />
         <Navbar />
       </div>
       <main className="flex-1">

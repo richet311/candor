@@ -64,8 +64,9 @@ is checked before any donation is marked paid. See
     ID-token flow (`googleAuthService.ts`); GitHub uses an
     authorization-code redirect flow (`oauthProviders.ts`) with a signed,
     self-verifying `state` token for CSRF protection instead of a cookie.
-    `GET /api/auth/oauth/providers` reports which are actually configured;
-    the login and register pages only render buttons for those
+    The login and register pages render buttons for the providers the
+    client was built with, then defer to `GET /api/auth/oauth/providers`,
+    which reports which are actually configured on the server
     (`OAuthButtons.tsx`). Both converge on the same account-linking logic
     (`findOrCreateOAuthUser`): matched by provider account first, then by
     email, so signing in with a second provider on the same email links to
@@ -226,12 +227,13 @@ donation instead of a continuous loop.
 
 ## Sign-in providers
 
-Every provider below is optional and independent. `GET
-/api/auth/oauth/providers` reports which ones have credentials configured,
-and the login/register pages only render a button for those, so the app
-runs fine on email/password alone with nothing else set up. Google is a
-client-side ID-token flow; GitHub is a server-side redirect flow with no
-client-side secret at all.
+Every provider below is optional and independent. The login/register pages
+render a button for each provider the client env enables, so they show up
+with the page rather than after an API round trip, then defer to `GET
+/api/auth/oauth/providers`, which reports which ones the server actually
+has credentials for. The app runs fine on email/password alone with nothing
+else set up. Google is a client-side ID-token flow; GitHub is a server-side
+redirect flow with no client-side secret at all.
 
 ### Google
 
@@ -248,8 +250,10 @@ client ID as `GOOGLE_CLIENT_ID` in `server/.env` and
 [GitHub Developer Settings](https://github.com/settings/developers) → **New
 OAuth App**. Homepage URL `http://localhost:5173`, Authorization callback
 URL `http://localhost:4000/api/auth/oauth/github/callback`. Set
-`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` in `server/.env`. Nothing goes
-in the client env.
+`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` in `server/.env`, and
+`VITE_GITHUB_SIGNIN_ENABLED=true` in `client/.env`. That last one isn't a
+secret, just a flag telling the client to render the button without waiting
+for the API.
 
 ## Deploying
 
@@ -274,9 +278,15 @@ service. Fill in the env vars marked `sync: false` in the Render dashboard:
 `DATABASE_URL` (from Neon), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
 and the OAuth ones if you're using them. `JWT_ACCESS_SECRET` and
 `JWT_REFRESH_SECRET` are generated for you. Migrations run automatically on
-every deploy (`prisma migrate deploy` is in the start command). Free-tier
-services sleep after ~15 minutes idle; the first request after that takes
-30-50s to cold start.
+every deploy, as the last step of the build command. Render's pre-deploy
+command is paid-only, and the start command runs again every time a free
+instance wakes up, so migrating there slowed down every cold start.
+
+Free-tier services sleep after 15 minutes idle, and the first request after
+that waits up to a minute for a cold start. The client's Worker pings
+`/api/health` every 10 minutes to prevent that (see step 3). While the API
+is waking anyway, the client retries reads and shows a "waking up the demo
+server" notice instead of failing.
 
 ### 3. Client (Cloudflare Workers static assets)
 
@@ -288,12 +298,23 @@ Dashboard → **Workers & Pages** → **Create** → connect this repo → set
 `client/wrangler.jsonc` or the build fails), **Path** to `client`, and
 **Build command** to `npm run build`; leave **Deploy command** as the
 pre-filled `npx wrangler deploy`, it reads `wrangler.jsonc` automatically.
-Add env var `VITE_API_URL` set to your Render service's URL plus `/api`.
+Add env var `VITE_API_URL` set to your Render service's URL plus `/api`,
+plus `VITE_GOOGLE_CLIENT_ID` and `VITE_GITHUB_SIGNIN_ENABLED=true` for
+whichever sign-in providers you've configured on the API.
 `not_found_handling` in `wrangler.jsonc` is set to `single-page-application`,
 so client-side routes don't 404 on a hard refresh — don't add a classic-Pages
 `_redirects` file alongside it, Wrangler's newer asset deploy validates
 `_redirects` rules and rejects the usual `/* /index.html 200` catch-all as an
 infinite loop.
+
+The Worker also runs `worker/index.ts` on a cron trigger, pinging the API
+every 10 minutes so Render's free tier never spins it down. Set
+`API_HEALTH_URL` under `vars` in `wrangler.jsonc` to your API's health URL.
+Keeping one free service awake around the clock uses up to 744 of the 750
+free instance hours Render gives each workspace per month, and Render
+suspends every free service in the workspace once those run out. If other
+free Render services share the workspace, narrow the cron's hours or remove
+the trigger (see the comment in `wrangler.jsonc`).
 
 ### 4. Wire them together
 

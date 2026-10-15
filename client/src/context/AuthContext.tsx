@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { apiFetch, ApiError, setAccessToken, setUnauthorizedHandler } from "../lib/api";
+import { apiFetch, ApiError, refreshSession, setAccessToken, setUnauthorizedHandler } from "../lib/api";
 import { createLogger } from "../lib/logger";
 import { oauthWelcomeMessage } from "../lib/oauthMessages";
 import { useToast } from "./ToastContext";
@@ -50,22 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function restoreSession() {
-      try {
-        const res = await fetch(`${(import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:4000/api"}/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("no active session");
-        const data = (await res.json()) as AuthResponse;
-        if (cancelled) return;
-        setAccessToken(data.accessToken);
-        setUser(data.user);
-        log.info("restored session from refresh cookie", { userId: data.user.id });
-      } catch {
-        if (!cancelled) log.debug("no active session to restore");
-      } finally {
-        if (!cancelled) setIsLoading(false);
+      const session = await refreshSession();
+      if (cancelled) return;
+      if (session) {
+        setUser(session.user);
+        log.info("restored session from refresh cookie", { userId: session.user.id });
+      } else {
+        log.debug("no active session to restore");
       }
+      setIsLoading(false);
     }
 
     void restoreSession();

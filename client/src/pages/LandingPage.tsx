@@ -44,7 +44,8 @@ const STEPS = [
 ];
 
 export function LandingPage() {
-  const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading } = useFunds({ limit: 48 });
+  const { funds, total, categories, totalRaisedCents, totalSpentCents, isLoading, loadFailed } = useFunds({ limit: 48 });
+  const statValue = (value: string) => (isLoading ? "…" : loadFailed ? "—" : value);
   const previewFund = [...funds].sort((a, b) => b.raisedCents - a.raisedCents)[0];
   const { fund: previewFundDetail } = useFund(previewFund?.slug);
   const previewPresetAmountsCents = getPresetAmountsCents(previewFund?.category);
@@ -148,9 +149,9 @@ export function LandingPage() {
       </section>
 
       <PageContainer className="relative z-10 -mt-4 grid gap-4 pb-4 sm:-mt-6 sm:grid-cols-3 sm:gap-5">
-        <StatTile label="Active funds" value={isLoading ? "…" : String(total)} />
-        <StatTile label="Raised so far" value={isLoading ? "…" : formatCents(totalRaisedCents)} />
-        <StatTile label="Itemized and spent" value={isLoading ? "…" : formatCents(totalSpentCents)} hint="Every dollar logged by category" />
+        <StatTile label="Active funds" value={statValue(String(total))} />
+        <StatTile label="Raised so far" value={statValue(formatCents(totalRaisedCents))} />
+        <StatTile label="Itemized and spent" value={statValue(formatCents(totalSpentCents))} hint="Every dollar logged by category" />
       </PageContainer>
 
       <PageContainer className="grid gap-5 py-8 sm:grid-cols-2">
